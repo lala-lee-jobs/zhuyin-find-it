@@ -17,7 +17,6 @@ export const BORDER_INSET = 12
 
 /** 標題雲朵 */
 export const HEADER = {
-  cloud: { cx: 400, cy: 80, w: 470, h: 112 },
   /** 標題文字＋注音的中心點（喇叭在右側） */
   titleCenterX: 368,
   titleBaselineY: 102,

@@ -54,9 +54,6 @@ export function renderBase(ctx: Ctx2D, worksheet: ZhuyinWorksheet, opts: BaseRen
 }
 
 function drawTitle(ctx: Ctx2D, worksheet: ZhuyinWorksheet): void {
-  const { cloud } = HEADER
-  drawCloud(ctx, cloud.cx, cloud.cy, cloud.w, cloud.h, 3.5)
-
   const label = '找找看'
   ctx.save()
   ctx.font = `900 ${HEADER.titleFontSize}px ${FONT_STACK}`
