@@ -1,18 +1,21 @@
 <script setup lang="ts">
 /** 學習單標題區右半部的進度：星星（給還不識字的孩子）＋短文字（給陪伴的大人） */
 import { computed } from 'vue'
-import { PROGRESS_BAND, WORKSHEET_HEIGHT, WORKSHEET_WIDTH } from '../canvas/layout'
+import type { SheetLayout } from '../canvas/layout'
 import AppIcon from './AppIcon.vue'
 
-const props = defineProps<{ found: number; total: number; symbol: string; scale: number }>()
+const props = defineProps<{ found: number; total: number; symbol: string; scale: number; layout: SheetLayout }>()
 
-const style = computed(() => ({
-  left: `${(PROGRESS_BAND.x / WORKSHEET_WIDTH) * 100}%`,
-  top: `${(PROGRESS_BAND.y / WORKSHEET_HEIGHT) * 100}%`,
-  width: `${(PROGRESS_BAND.w / WORKSHEET_WIDTH) * 100}%`,
-  height: `${(PROGRESS_BAND.h / WORKSHEET_HEIGHT) * 100}%`,
-  fontSize: `${Math.max(10, 28 * props.scale)}px`,
-}))
+const style = computed(() => {
+  const { width: W, height: H, progress: b } = props.layout
+  return {
+    left: `${(b.x / W) * 100}%`,
+    top: `${(b.y / H) * 100}%`,
+    width: `${(b.w / W) * 100}%`,
+    height: `${(b.h / H) * 100}%`,
+    fontSize: `${Math.max(10, b.fontSize * props.scale)}px`,
+  }
+})
 /** 星星分兩排：上排 ⌈total / 2⌉ 顆、下排其餘 */
 const starRows = computed(() => {
   const all = Array.from({ length: props.total }, (_, i) => i + 1)
@@ -22,7 +25,7 @@ const starRows = computed(() => {
 /** 星星大小：最多 32，一排星星多時縮小，讓整排塞得進進度區（星星間距約 0.12 倍） */
 const starSize = computed(() => {
   const perRow = Math.max(1, starRows.value[0]?.length ?? 1)
-  const fit = PROGRESS_BAND.w / perRow / 1.14
+  const fit = props.layout.progress.w / perRow / 1.14
   return Math.max(9, Math.min(32, fit) * props.scale)
 })
 const done = computed(() => props.total > 0 && props.found >= props.total)

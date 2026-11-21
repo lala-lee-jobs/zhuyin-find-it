@@ -4,7 +4,7 @@
  * 位置用學習單邏輯座標的百分比，跟著學習單一起縮放。
  */
 import { computed } from 'vue'
-import { HEADER, WORKSHEET_HEIGHT, WORKSHEET_WIDTH } from '../canvas/layout'
+import type { SheetLayout } from '../canvas/layout'
 import AppIcon from './AppIcon.vue'
 
 const props = defineProps<{
@@ -12,16 +12,18 @@ const props = defineProps<{
   playing: boolean
   muted: boolean
   hint: string | null
+  layout: SheetLayout
 }>()
 const emit = defineEmits<{ (e: 'speak'): void }>()
 
 const style = computed(() => {
-  const s = HEADER.speaker
+  const { width: W, height: H } = props.layout
+  const s = props.layout.header.speaker
   return {
-    left: `${((s.x - s.size / 2) / WORKSHEET_WIDTH) * 100}%`,
-    top: `${((s.y - s.size / 2) / WORKSHEET_HEIGHT) * 100}%`,
-    width: `${(s.size / WORKSHEET_WIDTH) * 100}%`,
-    height: `${(s.size / WORKSHEET_HEIGHT) * 100}%`,
+    left: `${((s.x - s.size / 2) / W) * 100}%`,
+    top: `${((s.y - s.size / 2) / H) * 100}%`,
+    width: `${(s.size / W) * 100}%`,
+    height: `${(s.size / H) * 100}%`,
   }
 })
 const label = computed(() => (props.muted ? `已靜音，${props.symbol} 的發音` : `聽 ${props.symbol} 的發音`))

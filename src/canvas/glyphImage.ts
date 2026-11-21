@@ -11,7 +11,8 @@
  * 位置：依圖片的不透明範圍自動縮放置中到 GLYPH_IMAGE_AREA，不需要逐張手動對位；
  * 點擊判定也直接看圖片的不透明區，不依賴骨架路徑。
  */
-import type { CanvasLike, CanvasFactory } from './drawingMask'
+import type { CanvasLike, CanvasFactory, StrokeTransform } from './drawingMask'
+import type { SheetLayout } from './layout'
 import type { Ctx2D } from './renderDecorations'
 
 export interface Rect {
@@ -139,4 +140,23 @@ export function processGlyphImage(img: CanvasImageSource & { width: number; heig
   octx.putImageData(cleaned, 0, 0)
 
   return { source, overlay, width, height, bounds, alpha: data.data }
+}
+
+/**
+ * 筆畫從 from 版面換算到 to 版面的轉換（筆畫以直式版面座標儲存）。
+ * 有圖片時對齊圖片的放置位置；沒有圖片時對齊泡泡字方塊。
+ */
+export function strokeTransformBetween(
+  image: Pick<ProcessedGlyphImage, 'bounds' | 'width' | 'height'> | null,
+  from: SheetLayout,
+  to: SheetLayout,
+): StrokeTransform {
+  if (image) {
+    const a0 = placeGlyphImage(image.bounds, image.width, image.height, from.glyphImageArea)
+    const a1 = placeGlyphImage(image.bounds, image.width, image.height, to.glyphImageArea)
+    const a = a1.w / a0.w
+    return { a, tx: a1.x - a0.x * a, ty: a1.y - a0.y * a }
+  }
+  const a = to.glyphBox.size / from.glyphBox.size
+  return { a, tx: to.glyphBox.x - from.glyphBox.x * a, ty: to.glyphBox.y - from.glyphBox.y * a }
 }

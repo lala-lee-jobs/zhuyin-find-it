@@ -19,7 +19,7 @@ import type {
   ZhuyinCircle,
   ZhuyinWorksheet,
 } from '../types/worksheet'
-import { GLYPH_BOX, GLYPH_IMAGE_AREA } from '../canvas/layout'
+import { PORTRAIT_LAYOUT, type SheetLayout } from '../canvas/layout'
 import { clientToLogical, computeBackingSize } from '../canvas/coordinateUtils'
 import { findCircleAt, isPointInCircle } from '../canvas/hitTesting'
 import { isPointInGlyph, layoutGlyph } from '../canvas/glyphGeometry'
@@ -28,15 +28,17 @@ import { renderCircles } from '../canvas/renderCircles'
 import { lookupImage } from '../canvas/imageCache'
 import { assetUrl } from '../utils/assetUrl'
 import { useCanvasDrawing } from '../composables/useCanvasDrawing'
-import { defaultCanvasFactory } from '../canvas/drawingMask'
+import { defaultCanvasFactory, type StrokeTransform } from '../canvas/drawingMask'
 import {
   isPointInGlyphImage,
   placeGlyphImage,
   processGlyphImage,
+  strokeTransformBetween,
   type PlacedGlyphImage,
   type ProcessedGlyphImage,
 } from '../canvas/glyphImage'
 import { getGlyphImageUrl } from '../data/zhuyinGlyphImages'
+import { placeCircles } from '../data/worksheets'
 import { loadImage } from '../canvas/imageCache'
 
 const props = defineProps<{
@@ -52,6 +54,8 @@ const props = defineProps<{
   locked: boolean
   /** 彩色電子紙模式 */
   epaper: boolean
+  /** 版面（直式／橫式／手機窄版） */
+  layout: SheetLayout
 }>()
 
 const emit = defineEmits<{
@@ -73,11 +77,14 @@ const baseCanvas = ref<HTMLCanvasElement | null>(null)
 const drawCanvas = ref<HTMLCanvasElement | null>(null)
 const circleCanvas = ref<HTMLCanvasElement | null>(null)
 
-const backing = computed(() => computeBackingSize(props.scale, props.dpr))
-const glyphLayout = computed(() => layoutGlyph(props.worksheet.targetSymbol, GLYPH_BOX))
+const backing = computed(() =>
+  computeBackingSize(props.scale, props.dpr, {}, props.layout.width, props.layout.height),
+)
+const glyphLayout = computed(() => layoutGlyph(props.worksheet.targetSymbol, props.layout.glyphBox))
 const foundSet = computed(() => new Set(props.foundIds))
+/** 這個版面上的圓圈（直式 40 個；橫式、手機窄版比較少，但正確的圓圈都在） */
 const circleViews = computed<ZhuyinCircle[]>(() =>
-  props.worksheet.circles.map((c) => ({ ...c, isFound: foundSet.value.has(c.id) })),
+  placeCircles(props.worksheet, props.layout).map((c) => ({ ...c, isFound: foundSet.value.has(c.id) })),
 )
 
 // ───────── 繪製排程（rAF 合併多次請求） ─────────
@@ -100,7 +107,15 @@ function renderFrame(now: number): void {
   if (dirty.base && baseCanvas.value) {
     dirty.base = false
     const ctx = baseCanvas.value.getContext('2d')
-    if (ctx) renderBase(ctx, props.worksheet, { k, width, height, images: lookupImage, resolveUrl: assetUrl })
+    if (ctx)
+      renderBase(ctx, props.worksheet, {
+        k,
+        width,
+        height,
+        images: lookupImage,
+        resolveUrl: assetUrl,
+        layout: props.layout,
+      })
   }
   if (dirty.drawing && drawCanvas.value) {
     dirty.drawing = false
@@ -138,15 +153,29 @@ const drawing = useCanvasDrawing({
 // ───────── 中央注音圖片（PNG） ─────────
 /** 處理過的圖片快取（每個網址只處理一次）；null 代表處理失敗、改用泡泡字 */
 const processedImages = new Map<string, ProcessedGlyphImage | null>()
-const glyphImage = shallowRef<PlacedGlyphImage | null>(null)
+const processedImage = shallowRef<ProcessedGlyphImage | null>(null)
+const glyphImage = computed<PlacedGlyphImage | null>(() => {
+  const image = processedImage.value
+  if (!image) return null
+  return { image, rect: placeGlyphImage(image.bounds, image.width, image.height, props.layout.glyphImageArea) }
+})
 
-function placeImage(image: ProcessedGlyphImage): PlacedGlyphImage {
-  return { image, rect: placeGlyphImage(image.bounds, image.width, image.height, GLYPH_IMAGE_AREA) }
+/**
+ * 筆畫以直式版面的座標儲存；其他版面依大注音的位置與大小換算。
+ * 有圖片時以圖片的放置位置對齊，沒有圖片時以泡泡字方塊對齊。
+ */
+const strokeTransform = computed<StrokeTransform>(() =>
+  strokeTransformBetween(processedImage.value, PORTRAIT_LAYOUT, props.layout),
+)
+/** 版面座標 → 儲存用（直式）座標 */
+function toStored(p: DrawingPoint): DrawingPoint {
+  const { a, tx, ty } = strokeTransform.value
+  return { x: (p.x - tx) / a, y: (p.y - ty) / a }
 }
 
 /** 換題時呼叫：有圖片就載入；載入前、失敗時都顯示原本的泡泡字 */
 function loadGlyphImage(): void {
-  glyphImage.value = null
+  processedImage.value = null
   const url = getGlyphImageUrl(props.worksheet.targetSymbol)
   if (!url) return
   const id = props.worksheet.id
@@ -166,7 +195,7 @@ function loadGlyphImage(): void {
     }
     const processed = processedImages.get(url)
     if (processed) {
-      glyphImage.value = placeImage(processed)
+      processedImage.value = processed
       applySize()
     }
   }
@@ -184,7 +213,7 @@ function applySize(): void {
   }
   // 以向量筆畫重建：resize 後塗色不會遺失
   drawing.setEpaper(props.epaper)
-  drawing.configure(width, height, k, glyphLayout.value, glyphImage.value)
+  drawing.configure(width, height, k, glyphLayout.value, glyphImage.value, strokeTransform.value)
   drawing.sync(props.strokes)
   requestRender('all')
 }
@@ -204,6 +233,16 @@ onBeforeUnmount(() => {
 })
 
 watch(backing, applySize)
+// 換版面（轉螢幕）：圓圈、大注音位置都變了，整個重畫
+watch(
+  () => props.layout,
+  () => {
+    drawing.discard()
+    pendingTap = null
+    fillAnimations.clear()
+    applySize()
+  },
+)
 
 watch(
   () => props.worksheet.id,
@@ -269,7 +308,7 @@ let pendingTap: PendingTap | null = null
 function toLogical(e: PointerEvent): DrawingPoint {
   const rect = root.value?.getBoundingClientRect()
   if (!rect) return { x: -1, y: -1 }
-  return clientToLogical(e.clientX, e.clientY, rect)
+  return clientToLogical(e.clientX, e.clientY, rect, props.layout.width, props.layout.height)
 }
 
 function onPointerDown(e: PointerEvent): void {
@@ -297,7 +336,7 @@ function onPointerDown(e: PointerEvent): void {
     } catch {
       /* 某些瀏覽器在合成事件上不允許 capture */
     }
-    drawing.begin(e.pointerId, p)
+    drawing.begin(e.pointerId, toStored(p))
   }
   // 3. 其他區域：不處理
 }
@@ -308,7 +347,7 @@ function onPointerMove(e: PointerEvent): void {
     const list = events.length > 0 ? events : [e]
     drawing.extend(
       e.pointerId,
-      list.map((ev) => toLogical(ev)),
+      list.map((ev) => toStored(toLogical(ev))),
     )
     e.preventDefault()
     return
@@ -372,7 +411,7 @@ function releaseCapture(pointerId: number): void {
       ref="circleCanvas"
       class="layer"
       role="img"
-      :aria-label="`${worksheet.title} 學習單，中央大注音可以塗色，周圍有 ${worksheet.circles.length} 個注音圓圈`"
+      :aria-label="`${worksheet.title} 學習單，中央大注音可以塗色，周圍有 ${circleViews.length} 個注音圓圈`"
     />
   </div>
 </template>

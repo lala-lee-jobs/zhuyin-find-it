@@ -36,6 +36,17 @@ export const defaultCanvasFactory: CanvasFactory = (width, height) => {
   return new OffscreenCanvas(width, height)
 }
 
+/**
+ * 筆畫座標轉換：筆畫一律以「直式版面」的座標儲存，
+ * 在其他版面上依大注音的位置與大小換算（p' = p × a + t），換版面時塗色會跟著注音走。
+ */
+export interface StrokeTransform {
+  a: number
+  tx: number
+  ty: number
+}
+export const IDENTITY_TRANSFORM: StrokeTransform = { a: 1, tx: 0, ty: 0 }
+
 function getCtx(canvas: CanvasLike): Ctx2D {
   const ctx = canvas.getContext('2d') as Ctx2D | null
   if (!ctx) throw new Error('Canvas 2D context unavailable')
@@ -43,11 +54,17 @@ function getCtx(canvas: CanvasLike): Ctx2D {
 }
 
 /** 以平滑曲線（中點二次曲線）畫一筆；單點畫圓點 */
-export function drawStroke(ctx: Ctx2D, stroke: DrawingStroke, k: number, epaper = false): void {
+export function drawStroke(
+  ctx: Ctx2D,
+  stroke: DrawingStroke,
+  k: number,
+  epaper = false,
+  xf: StrokeTransform = IDENTITY_TRANSFORM,
+): void {
   const pts = stroke.points
   if (pts.length === 0) return
   ctx.save()
-  ctx.setTransform(k, 0, 0, k, 0, 0)
+  ctx.setTransform(k * xf.a, 0, 0, k * xf.a, k * xf.tx, k * xf.ty)
   ctx.globalCompositeOperation = stroke.tool === 'eraser' ? 'destination-out' : 'source-over'
   ctx.strokeStyle = stroke.tool === 'eraser' ? '#000' : displayColor(stroke.color, epaper)
   ctx.fillStyle = ctx.strokeStyle
@@ -90,6 +107,7 @@ export class GlyphPaintSurface {
   private strokes: readonly DrawingStroke[] = []
   private epaper = false
   private image: PlacedGlyphImage | null = null
+  private xf: StrokeTransform = IDENTITY_TRANSFORM
 
   constructor(private readonly factory: CanvasFactory = defaultCanvasFactory) {}
 
@@ -108,8 +126,10 @@ export class GlyphPaintSurface {
     k: number,
     layout: GlyphLayout | null,
     image: PlacedGlyphImage | null = null,
+    xf: StrokeTransform = IDENTITY_TRANSFORM,
   ): void {
     const sizeChanged = width !== this.width || height !== this.height
+    this.xf = xf
     this.width = width
     this.height = height
     this.k = k
@@ -143,7 +163,7 @@ export class GlyphPaintSurface {
     if (!this.paint) return
     if (isAppend) {
       const ctx = getCtx(this.paint)
-      for (let i = prev.length; i < strokes.length; i++) drawStroke(ctx, strokes[i], this.k, this.epaper)
+      for (let i = prev.length; i < strokes.length; i++) drawStroke(ctx, strokes[i], this.k, this.epaper, this.xf)
       this.drawnIds = strokes.map((s) => s.id)
     } else {
       this.rebuildPaint()
@@ -167,7 +187,7 @@ export class GlyphPaintSurface {
     s.clearRect(0, 0, this.width, this.height)
     s.drawImage(this.paint, 0, 0)
     s.restore()
-    if (active) drawStroke(s, active, this.k, this.epaper)
+    if (active) drawStroke(s, active, this.k, this.epaper, this.xf)
     s.save()
     s.setTransform(1, 0, 0, 1, 0, 0)
     s.globalCompositeOperation = 'destination-in'
@@ -227,7 +247,7 @@ export class GlyphPaintSurface {
     ctx.globalCompositeOperation = 'source-over'
     ctx.clearRect(0, 0, this.width, this.height)
     ctx.restore()
-    for (const stroke of this.strokes) drawStroke(ctx, stroke, this.k, this.epaper)
+    for (const stroke of this.strokes) drawStroke(ctx, stroke, this.k, this.epaper, this.xf)
     this.drawnIds = this.strokes.map((s) => s.id)
   }
 }

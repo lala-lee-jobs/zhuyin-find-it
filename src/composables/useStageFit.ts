@@ -1,9 +1,13 @@
-import { onBeforeUnmount, onMounted, ref, type Ref } from 'vue'
-import { computeFitScale } from '../canvas/coordinateUtils'
+import { onBeforeUnmount, onMounted, ref, shallowRef, type Ref } from 'vue'
+import { PORTRAIT_LAYOUT, chooseLayout, layoutScale, type SheetLayout } from '../canvas/layout'
 
-/** 量測舞台大小，算出學習單等比例縮放倍率；同時回報螢幕方向與是否為小螢幕 */
+/**
+ * 量測舞台大小：依螢幕形狀選版面（直式／橫式／手機窄版），
+ * 算出等比例縮放倍率；同時回報螢幕方向與是否為小螢幕。
+ */
 export function useStageFit(stage: Ref<HTMLElement | null>) {
   const scale = ref(0)
+  const layout = shallowRef<SheetLayout>(PORTRAIT_LAYOUT)
   const landscape = ref(false)
   const compact = ref(false)
   const dpr = ref(typeof window !== 'undefined' ? window.devicePixelRatio || 1 : 1)
@@ -15,9 +19,11 @@ export function useStageFit(stage: Ref<HTMLElement | null>) {
     const el = stage.value
     if (!el) return
     const rect = el.getBoundingClientRect()
-    scale.value = computeFitScale(rect.width, rect.height)
     landscape.value = window.innerWidth > window.innerHeight * 1.08
     compact.value = Math.min(window.innerWidth, window.innerHeight) < 600
+    const next = chooseLayout(rect.width, rect.height, compact.value)
+    if (next !== layout.value) layout.value = next
+    scale.value = layoutScale(next, rect.width, rect.height)
     dpr.value = window.devicePixelRatio || 1
   }
 
@@ -47,5 +53,5 @@ export function useStageFit(stage: Ref<HTMLElement | null>) {
     dprQuery?.removeEventListener('change', onDprChange)
   })
 
-  return { scale, landscape, compact, dpr, measure }
+  return { scale, layout, landscape, compact, dpr, measure }
 }

@@ -37,8 +37,8 @@ const stage = ref<HTMLElement | null>(null)
 const fit = useStageFit(stage)
 
 const sheetStyle = computed(() => ({
-  width: `${Math.round(800 * fit.scale.value)}px`,
-  height: `${Math.round(1100 * fit.scale.value)}px`,
+  width: `${Math.round(fit.layout.value.width * fit.scale.value)}px`,
+  height: `${Math.round(fit.layout.value.height * fit.scale.value)}px`,
 }))
 
 // ───────── 圓圈 ─────────
@@ -249,6 +249,7 @@ watch(ws.currentId, () => stage.value?.focus({ preventScroll: true }))
           :active-circle-id="interaction.activeCircleId.value"
           :locked="interaction.isBusy.value || showCompletion"
           :epaper="ws.epaper.value"
+          :layout="fit.layout.value"
           @circle-tap="onCircleTap"
           @stroke-commit="onStrokeCommit"
           @stroke-start="(tool) => audio.brush.start(tool)"
@@ -260,6 +261,7 @@ watch(ws.currentId, () => stage.value?.focus({ preventScroll: true }))
           :playing="audio.speakerPlaying.value"
           :muted="ws.muted.value"
           :hint="speakerHint"
+          :layout="fit.layout.value"
           @speak="onSpeak"
         />
         <ProgressIndicator
@@ -267,6 +269,7 @@ watch(ws.currentId, () => stage.value?.focus({ preventScroll: true }))
           :total="ws.progress.value.totalCorrectCircles"
           :symbol="ws.worksheet.value.targetSymbol"
           :scale="fit.scale.value"
+          :layout="fit.layout.value"
         />
       </div>
     </main>

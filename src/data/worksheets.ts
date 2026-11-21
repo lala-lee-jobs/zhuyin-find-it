@@ -1,5 +1,5 @@
 import type { IllustrationItem, ZhuyinCircle, ZhuyinWorksheet } from '../types/worksheet'
-import { CIRCLE_JITTER, CIRCLE_RADIUS, CIRCLE_SLOTS } from '../canvas/layout'
+import { CIRCLE_JITTER, CIRCLE_RADIUS, CIRCLE_SLOTS, type CircleSlot, type SheetLayout } from '../canvas/layout'
 import { hashString, mulberry32, seededShuffle } from '../core/random'
 import { ZHUYIN_AUDIO } from './zhuyinAudioMap'
 
@@ -209,7 +209,7 @@ export function buildWorksheet(seed: WorksheetSeed): ZhuyinWorksheet {
 
   let arranged = seededShuffle(symbols, rand)
   for (let attempt = 0; attempt < 200; attempt++) {
-    if (isWellSpread(arranged, seed.target)) break
+    if (isWellSpread(arranged, seed.target, CIRCLE_SLOTS)) break
     arranged = seededShuffle(symbols, rand)
   }
 
@@ -243,14 +243,56 @@ export function buildWorksheet(seed: WorksheetSeed): ZhuyinWorksheet {
   }
 }
 
-function isWellSpread(arranged: string[], target: string): boolean {
+function isWellSpread(arranged: readonly string[], target: string, slots: readonly CircleSlot[]): boolean {
   const perZone: Record<string, number> = { top: 0, left: 0, right: 0, bottom: 0 }
   arranged.forEach((s, i) => {
-    if (s === target) perZone[CIRCLE_SLOTS[i].zone]++
+    if (s === target) perZone[slots[i].zone]++
   })
   if (!ZONES.every((z) => perZone[z] >= 1)) return false
   // 避免左右、上下嚴重不平均
   return Math.abs(perZone.left - perZone.right) <= 2 && Math.abs(perZone.top - perZone.bottom) <= 2
+}
+
+/**
+ * 把題目的圓圈放到某個版面上。
+ * - 直式版面：就是題庫裡的 40 個圓圈與位置
+ * - 其他版面：圓圈數比較少，保留「全部正確的圓圈」，其餘位置放干擾注音；
+ *   圓圈 id 與題庫相同，所以換版面（轉螢幕、換裝置）時已找到的進度不會不見。
+ * 結果可重現（同一題、同一版面永遠相同）。
+ */
+const placementCache = new Map<string, ZhuyinCircle[]>()
+export function placeCircles(worksheet: ZhuyinWorksheet, layout: SheetLayout): ZhuyinCircle[] {
+  if (layout.slots === CIRCLE_SLOTS) return worksheet.circles
+  const key = `${worksheet.id}:${layout.id}`
+  const cached = placementCache.get(key)
+  if (cached) return cached
+
+  const slots = layout.slots
+  const correct = worksheet.circles.filter((c) => c.symbol === worksheet.targetSymbol)
+  const others = worksheet.circles.filter((c) => c.symbol !== worksheet.targetSymbol)
+  if (correct.length > slots.length) throw new Error(`${layout.id} 版面放不下 ${worksheet.id} 的正確圓圈`)
+  const chosen = [...correct, ...others.slice(0, slots.length - correct.length)]
+
+  const rand = mulberry32(hashString(key))
+  let arranged = seededShuffle(chosen, rand)
+  for (let attempt = 0; attempt < 200; attempt++) {
+    if (
+      isWellSpread(
+        arranged.map((c) => c.symbol),
+        worksheet.targetSymbol,
+        slots,
+      )
+    )
+      break
+    arranged = seededShuffle(chosen, rand)
+  }
+  const placed = arranged.map((c, i) => ({
+    ...c,
+    x: slots[i].x + Math.round((rand() * 2 - 1) * CIRCLE_JITTER),
+    y: slots[i].y + Math.round((rand() * 2 - 1) * CIRCLE_JITTER),
+  }))
+  placementCache.set(key, placed)
+  return placed
 }
 
 export const WORKSHEETS: readonly ZhuyinWorksheet[] = WORKSHEET_SEEDS.map(buildWorksheet)

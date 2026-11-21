@@ -5,7 +5,12 @@
 import { getCurrentScope, onScopeDispose } from 'vue'
 import type { BrushSettings, DrawingPoint, DrawingStroke, DrawingTool } from '../types/worksheet'
 import { appendPoint, createStroke } from '../core/strokes'
-import { GlyphPaintSurface, defaultCanvasFactory, type CanvasFactory } from '../canvas/drawingMask'
+import {
+  GlyphPaintSurface,
+  defaultCanvasFactory,
+  type CanvasFactory,
+  type StrokeTransform,
+} from '../canvas/drawingMask'
 import type { GlyphLayout } from '../canvas/glyphGeometry'
 import type { PlacedGlyphImage } from '../canvas/glyphImage'
 import type { Ctx2D } from '../canvas/renderDecorations'
@@ -79,8 +84,9 @@ export function useCanvasDrawing(options: UseCanvasDrawingOptions) {
     k: number,
     layout: GlyphLayout | null,
     image: PlacedGlyphImage | null = null,
+    xf?: StrokeTransform,
   ): void {
-    surface.configure(width, height, k, layout, image)
+    surface.configure(width, height, k, layout, image, xf)
   }
 
   function setEpaper(epaper: boolean): void {

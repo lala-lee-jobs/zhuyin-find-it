@@ -1,13 +1,7 @@
-/** Layer 1：紙張、外框、標題、裝飾 */
+/** Layer 1：紙張、標題、裝飾 */
 import type { ZhuyinWorksheet } from '../types/worksheet'
 import { hashString, mulberry32 } from '../core/random'
-import {
-  FONT_STACK,
-  HEADER,
-  INK,
-  WORKSHEET_HEIGHT,
-  WORKSHEET_WIDTH,
-} from './layout'
+import { FONT_STACK, INK, PORTRAIT_LAYOUT, type SheetLayout } from './layout'
 import {
   drawFlower,
   drawHeart,
@@ -24,6 +18,8 @@ export interface BaseRenderOptions {
   height: number
   images: ImageLookup
   resolveUrl: (path: string) => string
+  /** 版面（預設直式） */
+  layout?: SheetLayout
 }
 
 export function renderBase(ctx: Ctx2D, worksheet: ZhuyinWorksheet, opts: BaseRenderOptions): void {
@@ -33,17 +29,18 @@ export function renderBase(ctx: Ctx2D, worksheet: ZhuyinWorksheet, opts: BaseRen
   ctx.clearRect(0, 0, opts.width, opts.height)
   ctx.setTransform(opts.k, 0, 0, opts.k, 0, 0)
 
+  const layout = opts.layout ?? PORTRAIT_LAYOUT
   ctx.fillStyle = '#fff'
-  ctx.fillRect(0, 0, WORKSHEET_WIDTH, WORKSHEET_HEIGHT)
+  ctx.fillRect(0, 0, layout.width, layout.height)
 
   const rand = mulberry32(hashString(`${worksheet.id}:decor`))
-  drawTitle(ctx, worksheet)
-  drawBoardDecorations(ctx, rand)
+  drawTitle(ctx, worksheet, layout.header)
+  drawBoardDecorations(ctx, rand, layout)
 
   ctx.restore()
 }
 
-function drawTitle(ctx: Ctx2D, worksheet: ZhuyinWorksheet): void {
+function drawTitle(ctx: Ctx2D, worksheet: ZhuyinWorksheet, HEADER: SheetLayout['header']): void {
   const label = '找找看'
   ctx.save()
   ctx.font = `900 ${HEADER.titleFontSize}px ${FONT_STACK}`
@@ -76,7 +73,7 @@ const smallDecos: Deco[] = [
   (c, x, y, s) => drawFlower(c, x, y, s, 2.4),
 ]
 
-function drawBoardDecorations(ctx: Ctx2D, rand: () => number): void {
-  // 上兩排、下兩排圓圈之間的小星星／愛心／花
-  for (const y of [267, 981]) for (const x of [130, 400, 670]) pick(rand, smallDecos)(ctx, x, y, 8)
+function drawBoardDecorations(ctx: Ctx2D, rand: () => number, layout: SheetLayout): void {
+  // 圓圈之間的小星星／愛心／花
+  for (const { x, y } of layout.decorations) pick(rand, smallDecos)(ctx, x, y, 8)
 }
