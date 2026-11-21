@@ -24,11 +24,11 @@ export const EDGE_MARGIN = 4
 export const HEADER = {
   /** 標題文字的左緣 */
   titleLeftX: 40,
-  titleBaselineY: 102,
-  titleFontSize: 58,
-  titleGlyphSize: 62,
+  titleBaselineY: 100,
+  titleFontSize: 54,
+  titleGlyphSize: 58,
   /** 喇叭按鈕（HTML overlay，x/y 為中心點） */
-  speaker: { x: 344, y: 80, size: 76 },
+  speaker: { x: 330, y: 80, size: 72 },
 } as const
 
 /** 中央大注音的外框方塊（邏輯座標）。注音骨架 0–100 對應到這個方塊。 */
@@ -88,7 +88,7 @@ export const CIRCLE_SLOTS: ReadonlyArray<CircleSlot> = ROWS.flatMap(([y, zone]) 
 )
 
 /** 進度（HTML overlay），位於標題區右半部 */
-export const PROGRESS_BAND = { x: 420, y: 22, w: 350, h: 120 } as const
+export const PROGRESS_BAND = { x: 380, y: 26, w: 404, h: 112 } as const
 
 // ───────── 三種版面 ─────────
 
@@ -114,7 +114,8 @@ export interface SheetLayout {
     speaker: { x: number; y: number; size: number }
   }
   /** 進度（HTML overlay） */
-  progress: { x: number; y: number; w: number; h: number; fontSize: number }
+  /** fontSize：「已找到」文字的最大字級；starRows：星星排成幾排（小版 2 排，其餘 1 排） */
+  progress: { x: number; y: number; w: number; h: number; fontSize: number; starRows: 1 | 2 }
   /** 泡泡字（骨架）用的方塊 */
   glyphBox: { x: number; y: number; size: number }
   /** PNG 注音可用的範圍 */
@@ -130,7 +131,7 @@ export const PORTRAIT_LAYOUT: SheetLayout = {
   height: WORKSHEET_HEIGHT,
   board: REGIONS.board,
   header: HEADER,
-  progress: { ...PROGRESS_BAND, fontSize: 28 },
+  progress: { ...PROGRESS_BAND, fontSize: 32, starRows: 1 },
   glyphBox: GLYPH_BOX,
   glyphImageArea: GLYPH_IMAGE_AREA,
   slots: CIRCLE_SLOTS,
@@ -155,7 +156,7 @@ export const LANDSCAPE_LAYOUT: SheetLayout = {
     titleGlyphSize: 62,
     speaker: { x: 344, y: 70, size: 76 },
   },
-  progress: { x: 770, y: 10, w: 350, h: 118, fontSize: 28 },
+  progress: { x: 520, y: 10, w: 620, h: 112, fontSize: 32, starRows: 1 },
   glyphBox: { x: 430, y: 314, size: 300 },
   glyphImageArea: { cx: 580, cy: 464, maxW: 440, maxH: 430 },
   slots: LANDSCAPE_ROWS.flatMap((y, r) =>
@@ -195,13 +196,13 @@ export const NARROW_LAYOUT: SheetLayout = {
   height: 1000,
   board: { top: 150, bottom: 996 },
   header: {
-    titleLeftX: 28,
-    titleBaselineY: 96,
-    titleFontSize: 48,
-    titleGlyphSize: 52,
-    speaker: { x: 282, y: 78, size: 64 },
+    titleLeftX: 24,
+    titleBaselineY: 94,
+    titleFontSize: 44,
+    titleGlyphSize: 48,
+    speaker: { x: 262, y: 78, size: 58 },
   },
-  progress: { x: 336, y: 16, w: 252, h: 118, fontSize: 24 },
+  progress: { x: 300, y: 10, w: 294, h: 132, fontSize: 32, starRows: 2 },
   glyphBox: { x: 150, y: 423, size: 300 },
   glyphImageArea: { cx: 300, cy: 573, maxW: 360, maxH: 370 },
   slots: NARROW_ROWS.flatMap(([y, zone]): CircleSlot[] =>
