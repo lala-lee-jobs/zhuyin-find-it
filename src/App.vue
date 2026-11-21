@@ -17,7 +17,7 @@ import AppIcon from './components/AppIcon.vue'
 import { displayColor } from './core/palette'
 
 const ws = useWorksheetState()
-const audio = useAudio(ws.muted)
+const audio = useAudio(ws.muted, ws.brushSound)
 
 const showCompletion = ref(false)
 
@@ -223,7 +223,9 @@ watch(ws.currentId, () => stage.value?.focus({ preventScroll: true }))
         :vertical="fit.landscape.value"
         :collapsible="fit.compact.value"
         :epaper="ws.epaper.value"
+        :brush-sound="ws.brushSound.value"
         @update:brush="ws.setBrush"
+        @toggle-brush-sound="ws.setBrushSound(!ws.brushSound.value)"
         @undo="ws.undoStroke"
         @clear="confirmKind = 'clear'"
         @restart="confirmKind = 'restart'"

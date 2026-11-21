@@ -49,6 +49,7 @@ export function useWorksheetState(options: WorksheetStateOptions = {}) {
   const brush = reactive<BrushSettings>({ ...loaded.brush })
   const muted = ref(loaded.muted)
   const epaper = ref(loaded.epaper)
+  const brushSound = ref(loaded.brushSound)
 
   const currentIndex = computed(() => worksheets.findIndex((w) => w.id === currentId.value))
   const worksheet = computed(() => worksheets[Math.max(0, currentIndex.value)])
@@ -71,6 +72,7 @@ export function useWorksheetState(options: WorksheetStateOptions = {}) {
       brush: { ...brush },
       muted: muted.value,
       epaper: epaper.value,
+      brushSound: brushSound.value,
       progress: { ...progressMap },
     })
   }
@@ -165,6 +167,10 @@ export function useWorksheetState(options: WorksheetStateOptions = {}) {
     epaper.value = value
     scheduleSave()
   }
+  function setBrushSound(value: boolean): void {
+    brushSound.value = value
+    scheduleSave()
+  }
 
   return {
     worksheets,
@@ -179,6 +185,7 @@ export function useWorksheetState(options: WorksheetStateOptions = {}) {
     brush,
     muted,
     epaper,
+    brushSound,
     selectWorksheet,
     goNext,
     goPrev,
@@ -192,6 +199,7 @@ export function useWorksheetState(options: WorksheetStateOptions = {}) {
     setBrush,
     setMuted,
     setEpaper,
+    setBrushSound,
     saveNow,
   }
 }

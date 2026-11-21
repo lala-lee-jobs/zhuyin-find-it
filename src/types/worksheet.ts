@@ -75,6 +75,8 @@ export interface PersistedState {
   muted: boolean
   /** 彩色電子紙模式（舊存檔沒有這個欄位時視為 false） */
   epaper: boolean
+  /** 塗色筆刷音效（預設關閉） */
+  brushSound: boolean
   progress: Record<string, WorksheetProgress>
 }
 

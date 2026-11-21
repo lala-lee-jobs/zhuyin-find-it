@@ -23,6 +23,7 @@ export function createDefaultState(): PersistedState {
     brush: { ...DEFAULT_BRUSH },
     muted: false,
     epaper: false,
+    brushSound: false,
     progress: {},
   }
 }
@@ -69,6 +70,7 @@ export class StorageService {
       brush: { ...state.brush },
       muted: state.muted,
       epaper: state.epaper,
+      brushSound: state.brushSound,
       progress: Object.fromEntries(
         Object.entries(state.progress).map(([id, p]) => [
           id,
@@ -103,6 +105,7 @@ export function migrate(raw: unknown): PersistedState {
   state.lastWorksheetId = typeof data.lastWorksheetId === 'string' ? data.lastWorksheetId : null
   state.muted = data.muted === true
   state.epaper = data.epaper === true
+  state.brushSound = data.brushSound === true
   state.brush = sanitizeBrush(data.brush)
 
   const progress = data.progress

@@ -1,4 +1,4 @@
-import { getCurrentScope, onScopeDispose, ref, watch, type Ref } from 'vue'
+import { getCurrentScope, onScopeDispose, ref, watch, watchEffect, type Ref } from 'vue'
 import { AudioService, type PlayOutcome } from '../services/AudioService'
 import { BrushSound } from '../services/BrushSound'
 
@@ -19,6 +19,8 @@ export function getAudioService(): AudioService {
 
 export function useAudio(
   muted: Ref<boolean>,
+  /** 筆刷音效開關（預設關閉）；靜音時一律不出聲 */
+  brushSoundOn: Ref<boolean> = ref(false),
   service: AudioService = getAudioService(),
   brush: BrushSound = getBrushSound(),
 ) {
@@ -29,11 +31,12 @@ export function useAudio(
     muted,
     (m) => {
       service.setMuted(m)
-      brush.setMuted(m)
       if (m) stopSpeaker()
     },
     { immediate: true },
   )
+
+  watchEffect(() => brush.setMuted(muted.value || !brushSoundOn.value))
 
   /** 標題喇叭：播放目標注音；不改變任何進度 */
   async function playTarget(symbol: string): Promise<PlayOutcome> {

@@ -17,6 +17,8 @@ withDefaults(
       | 'palette'
       | 'replay'
       | 'epaper'
+      | 'brush-sound'
+      | 'brush-sound-off'
     size?: number
   }>(),
   { size: 28 },
@@ -85,6 +87,15 @@ withDefaults(
       <rect x="7" y="3.5" width="18" height="25" rx="3" fill="#fff" />
       <path d="M11 9h10M11 13.5h10M11 18h6" />
       <circle cx="16" cy="24" r="1.4" fill="currentColor" />
+    </template>
+    <template v-else-if="name === 'brush-sound' || name === 'brush-sound-off'">
+      <!-- 筆畫線（沙沙的筆跡）＋右側聲波；關閉時加一道斜線 -->
+      <path d="M3 22c2.5-5 4.5 1 7-3s4 1 6-2" />
+      <template v-if="name === 'brush-sound'">
+        <path d="M21 12.5a5 5 0 0 1 0 7" />
+        <path d="M24.5 9a10 10 0 0 1 0 14" />
+      </template>
+      <path v-else d="M20 10l9 12" />
     </template>
     <template v-else-if="name === 'palette'">
       <path

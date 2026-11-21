@@ -16,12 +16,15 @@ const props = defineProps<{
   vertical: boolean
   collapsible: boolean
   epaper: boolean
+  /** 筆刷音效是否開啟 */
+  brushSound: boolean
 }>()
 const emit = defineEmits<{
   (e: 'update:brush', patch: Partial<BrushSettings>): void
   (e: 'undo'): void
   (e: 'clear'): void
   (e: 'restart'): void
+  (e: 'toggle-brush-sound'): void
 }>()
 
 const collapsed = ref(false)
@@ -110,6 +113,17 @@ function pickColor(value: string): void {
         </button>
         <button type="button" class="tool" aria-label="重新開始本題" title="重新開始本題" @click="emit('restart')">
           <AppIcon name="restart" />
+        </button>
+        <button
+          type="button"
+          class="tool"
+          :class="{ active: brushSound }"
+          :aria-pressed="brushSound"
+          aria-label="筆刷音效"
+          :title="brushSound ? '筆刷音效：開' : '筆刷音效：關'"
+          @click="emit('toggle-brush-sound')"
+        >
+          <AppIcon :name="brushSound ? 'brush-sound' : 'brush-sound-off'" />
         </button>
       </div>
       <span class="sr-only" aria-live="polite">{{ brush.tool === 'eraser' ? '橡皮擦' : currentColorName }}</span>
