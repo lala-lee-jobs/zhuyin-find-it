@@ -23,6 +23,15 @@ const message = computed(() => {
   return ''
 })
 
+/**
+ * 已經出現結果（找到了／再找找看）時，點畫面任何地方都直接關閉，不用等它自己收起來。
+ * 發音中仍然不能關（除了右上角 X），讓孩子先聽完發音。
+ */
+function onLayerPointerDown(): void {
+  const phase = props.popup?.phase
+  if (phase === 'feedback' || phase === 'closing') emit('close')
+}
+
 const glyphFill = computed(() =>
   props.popup?.result === 'correct' || props.popup?.result === 'already' ? (props.fillColor ?? '#FFEB99') : '#ffffff',
 )
@@ -30,7 +39,7 @@ const glyphFill = computed(() =>
 
 <template>
   <Transition name="pop">
-    <div v-if="popup" class="answer-layer" @pointerdown.stop>
+    <div v-if="popup" class="answer-layer" @pointerdown.stop="onLayerPointerDown">
       <div
         class="answer-card"
         :class="[`phase-${popup.phase}`, popup.result ? `result-${popup.result}` : '']"
