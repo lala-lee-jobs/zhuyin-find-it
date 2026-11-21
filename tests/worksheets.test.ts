@@ -5,9 +5,9 @@ import { hasGlyphSkeleton } from '../src/data/zhuyinGlyphs'
 import { ZHUYIN_AUDIO } from '../src/data/zhuyinAudioMap'
 
 describe('題庫資料', () => {
-  it('題庫有十八個注音：ㄅ～ㄖ', () => {
-    expect(WORKSHEETS.map((w) => w.targetSymbol).join('')).toBe('ㄅㄆㄇㄈㄉㄊㄋㄌㄍㄎㄏㄐㄑㄒㄓㄔㄕㄖ')
-    expect(new Set(WORKSHEETS.map((w) => w.id)).size).toBe(18)
+  it('題庫有二十七個注音：聲母 ㄅ～ㄙ、韻母 ㄚㄛㄜ、介音 ㄧㄨㄩ', () => {
+    expect(WORKSHEETS.map((w) => w.targetSymbol).join('')).toBe('ㄅㄆㄇㄈㄉㄊㄋㄌㄍㄎㄏㄐㄑㄒㄓㄔㄕㄖㄗㄘㄙㄚㄛㄜㄧㄨㄩ')
+    expect(new Set(WORKSHEETS.map((w) => w.id)).size).toBe(27)
   })
 
   it.each(WORKSHEETS.map((w) => [w.title, w] as const))('%s：40 個圓圈、8–10 個正確', (_title, ws) => {

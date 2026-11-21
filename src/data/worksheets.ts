@@ -185,6 +185,16 @@ export const WORKSHEET_SEEDS: readonly WorksheetSeed[] = [
   { id: 'zhuyin-ch', target: 'ㄔ', correctCount: 8, distractors: ['ㄓ', 'ㄕ', 'ㄘ', 'ㄑ'] },
   { id: 'zhuyin-sh', target: 'ㄕ', correctCount: 10, distractors: ['ㄓ', 'ㄔ', 'ㄙ', 'ㄏ'] },
   { id: 'zhuyin-r', target: 'ㄖ', correctCount: 9, distractors: ['ㄇ', 'ㄓ', 'ㄕ', 'ㄈ'] },
+  { id: 'zhuyin-z', target: 'ㄗ', correctCount: 9, distractors: ['ㄘ', 'ㄙ', 'ㄓ', 'ㄕ'] },
+  { id: 'zhuyin-c', target: 'ㄘ', correctCount: 9, distractors: ['ㄗ', 'ㄙ', 'ㄔ', 'ㄎ'] },
+  { id: 'zhuyin-s', target: 'ㄙ', correctCount: 9, distractors: ['ㄗ', 'ㄘ', 'ㄥ', 'ㄌ'] },
+  // 韻母：順序與教育部《注音符號手冊》（音檔 F22–）相同
+  { id: 'zhuyin-a', target: 'ㄚ', correctCount: 9, distractors: ['ㄛ', 'ㄜ', 'ㄨ', 'ㄒ'] },
+  { id: 'zhuyin-o', target: 'ㄛ', correctCount: 9, distractors: ['ㄜ', 'ㄚ', 'ㄋ', 'ㄠ'] },
+  { id: 'zhuyin-e', target: 'ㄜ', correctCount: 9, distractors: ['ㄛ', 'ㄚ', 'ㄝ', 'ㄊ'] },
+  { id: 'zhuyin-i', target: 'ㄧ', correctCount: 8, distractors: ['ㄨ', 'ㄩ', 'ㄒ', 'ㄏ'] },
+  { id: 'zhuyin-u', target: 'ㄨ', correctCount: 9, distractors: ['ㄧ', 'ㄩ', 'ㄚ', 'ㄒ'] },
+  { id: 'zhuyin-yu', target: 'ㄩ', correctCount: 9, distractors: ['ㄧ', 'ㄨ', 'ㄇ', 'ㄐ'] },
 ]
 
 /** Phase 1 MVP 是「找找看 ㄌ」，第一次開啟時顯示這題 */
