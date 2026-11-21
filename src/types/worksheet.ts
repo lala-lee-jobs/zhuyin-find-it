@@ -77,6 +77,8 @@ export interface PersistedState {
   epaper: boolean
   /** 塗色筆刷音效（預設關閉） */
   brushSound: boolean
+  /** 開放到哪一題（含）；null 代表使用預設（DEFAULT_UNLOCKED_UNTIL_ID） */
+  unlockedUntilId: string | null
   progress: Record<string, WorksheetProgress>
 }
 

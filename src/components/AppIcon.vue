@@ -20,6 +20,7 @@ withDefaults(
       | 'brush-sound'
       | 'brush-sound-off'
       | 'info'
+      | 'settings'
     size?: number
   }>(),
   { size: 28 },
@@ -97,6 +98,13 @@ withDefaults(
         <path d="M24.5 9a10 10 0 0 1 0 14" />
       </template>
       <path v-else d="M20 10l9 12" />
+    </template>
+    <template v-else-if="name === 'settings'">
+      <path
+        d="M14 3h4l.8 3.4 2.4 1 3-1.8 2.8 2.8-1.8 3 1 2.4L29 14v4l-3.4.8-1 2.4 1.8 3-2.8 2.8-3-1.8-2.4 1L18 29h-4l-.8-3.4-2.4-1-3 1.8-2.8-2.8 1.8-3-1-2.4L3 18v-4l3.4-.8 1-2.4-1.8-3 2.8-2.8 3 1.8 2.4-1z"
+        fill="#fff"
+      />
+      <circle cx="16" cy="16" r="4.5" />
     </template>
     <template v-else-if="name === 'info'">
       <circle cx="16" cy="16" r="12" fill="#fff" />

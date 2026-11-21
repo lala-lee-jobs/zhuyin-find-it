@@ -23,6 +23,7 @@ function sample(): PersistedState {
     muted: true,
     epaper: true,
     brushSound: true,
+    unlockedUntilId: 'zhuyin-g',
     progress: {
       'zhuyin-l': {
         worksheetId: 'zhuyin-l',
@@ -48,6 +49,7 @@ describe('19.4 重新整理後進度恢復（localStorage）', () => {
     expect(loaded.muted).toBe(true)
     expect(loaded.epaper).toBe(true)
     expect(loaded.brushSound).toBe(true)
+    expect(loaded.unlockedUntilId).toBe('zhuyin-g')
     expect(loaded.progress['zhuyin-l'].foundCircleIds).toEqual(['zhuyin-l-c01'])
     expect(loaded.progress['zhuyin-l'].drawingStrokes[0].points[0]).toEqual({ x: 300.1, y: 601 })
   })

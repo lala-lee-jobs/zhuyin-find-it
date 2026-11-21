@@ -13,7 +13,7 @@ import WorksheetSelector from './components/WorksheetSelector.vue'
 import AnswerPopup from './components/AnswerPopup.vue'
 import CompletionPopup from './components/CompletionPopup.vue'
 import ConfirmDialog from './components/ConfirmDialog.vue'
-import CreditsDialog from './components/CreditsDialog.vue'
+import SettingsDialog from './components/SettingsDialog.vue'
 import AppIcon from './components/AppIcon.vue'
 import { displayColor } from './core/palette'
 
@@ -137,8 +137,51 @@ watchEffect(() => {
   if (ws.epaper.value) document.documentElement.dataset.display = 'epaper'
   else delete document.documentElement.dataset.display
 })
-// ───────── 關於（素材出處） ─────────
-const showCredits = ref(false)
+// ───────── 大人設定（長按 1 秒才打開，避免小朋友誤觸） ─────────
+const SETTINGS_HOLD_MS = 1000
+const showSettings = ref(false)
+const settingsHolding = ref(false)
+const settingsHint = ref(false)
+let holdTimer: ReturnType<typeof setTimeout> | null = null
+let settingsHintTimer: ReturnType<typeof setTimeout> | null = null
+
+function onSettingsDown(e: PointerEvent): void {
+  if (e.pointerType === 'mouse' && e.button !== 0) return
+  cancelSettingsHold()
+  settingsHolding.value = true
+  holdTimer = setTimeout(() => {
+    holdTimer = null
+    settingsHolding.value = false
+    settingsHint.value = false
+    showSettings.value = true
+  }, SETTINGS_HOLD_MS)
+}
+/** 放開：還沒按滿 1 秒就提示「大人請按住」 */
+function onSettingsUp(): void {
+  if (!holdTimer) return
+  cancelSettingsHold()
+  settingsHint.value = true
+  if (settingsHintTimer) clearTimeout(settingsHintTimer)
+  settingsHintTimer = setTimeout(() => (settingsHint.value = false), 2200)
+}
+function cancelSettingsHold(): void {
+  if (holdTimer) clearTimeout(holdTimer)
+  holdTimer = null
+  settingsHolding.value = false
+}
+/** 鍵盤（Enter／空白鍵）直接打開；小朋友通常不會用鍵盤 */
+function onSettingsClick(e: MouseEvent): void {
+  if (e.detail === 0) showSettings.value = true
+}
+onBeforeUnmount(() => {
+  cancelSettingsHold()
+  if (settingsHintTimer) clearTimeout(settingsHintTimer)
+})
+
+function onSetUnlocked(id: string): void {
+  resetTransientUi()
+  ws.setUnlockedUntil(id)
+}
 
 function toggleEpaper(): void {
   ws.setEpaper(!ws.epaper.value)
@@ -152,7 +195,7 @@ watch(ws.currentId, () => stage.value?.focus({ preventScroll: true }))
   <div class="app" :class="{ landscape: fit.landscape.value, compact: fit.compact.value }">
     <header class="topbar">
       <WorksheetSelector
-        :worksheets="ws.worksheets"
+        :worksheets="ws.available.value"
         :current-id="ws.currentId.value"
         :completed-ids="ws.completedIds.value"
         :has-prev="ws.hasPrev.value"
@@ -162,9 +205,24 @@ watch(ws.currentId, () => stage.value?.focus({ preventScroll: true }))
         @next="goNext()"
       />
       <div class="top-actions">
-        <button type="button" class="round-btn" aria-label="關於：素材出處" title="素材出處" @click="showCredits = true">
-          <AppIcon name="info" />
-        </button>
+        <div class="settings-wrap">
+          <button
+            type="button"
+            class="round-btn settings-btn"
+            :class="{ holding: settingsHolding }"
+            aria-label="大人設定（請按住 1 秒）"
+            title="大人設定：請按住 1 秒"
+            @pointerdown="onSettingsDown"
+            @pointerup="onSettingsUp"
+            @pointerleave="cancelSettingsHold"
+            @pointercancel="cancelSettingsHold"
+            @click="onSettingsClick"
+            @contextmenu.prevent
+          >
+            <AppIcon name="settings" />
+          </button>
+          <div v-if="settingsHint" class="settings-hint" role="status">大人設定：請按住 1 秒</div>
+        </div>
         <button
           type="button"
           class="round-btn epaper-btn"
@@ -248,7 +306,13 @@ watch(ws.currentId, () => stage.value?.focus({ preventScroll: true }))
       @replay="onReplay"
       @next="goNext(true)"
     />
-    <CreditsDialog :open="showCredits" @close="showCredits = false" />
+    <SettingsDialog
+      :open="showSettings"
+      :worksheets="ws.worksheets"
+      :unlocked-until-id="ws.unlockedUntilId.value"
+      @set-unlocked="onSetUnlocked"
+      @close="showSettings = false"
+    />
     <ConfirmDialog
       :open="confirmKind !== null"
       :title="confirmText.title"
@@ -305,6 +369,46 @@ watch(ws.currentId, () => stage.value?.focus({ preventScroll: true }))
   background: #fff;
   color: var(--ink);
   box-shadow: 0 3px 0 var(--ink);
+}
+.settings-wrap {
+  position: relative;
+}
+.settings-btn {
+  position: relative;
+  overflow: hidden;
+  touch-action: none;
+  -webkit-user-select: none;
+  user-select: none;
+  -webkit-touch-callout: none;
+}
+/* 按住時由下往上填滿，1 秒填滿就打開 */
+.settings-btn::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: var(--accent-soft);
+  transform: scaleY(0);
+  transform-origin: bottom;
+}
+.settings-btn.holding::before {
+  transform: scaleY(1);
+  transition: transform 1s linear;
+}
+.settings-btn > * {
+  position: relative;
+}
+.settings-hint {
+  position: absolute;
+  z-index: 30;
+  top: calc(100% + 8px);
+  right: 0;
+  width: max-content;
+  padding: 8px 12px;
+  font-size: 14px;
+  font-weight: 700;
+  background: #fff;
+  border: 2px solid var(--ink);
+  border-radius: 14px;
 }
 .epaper-btn.on {
   background: var(--accent-soft);

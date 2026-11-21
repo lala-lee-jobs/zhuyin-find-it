@@ -1,10 +1,12 @@
 /**
  * 學習單狀態：目前題目、每題進度、畫筆設定、靜音，並自動存進 localStorage。
+ * 題庫只開放到 unlockedUntilId（含）為止，跟著學校進度由大人調整；
+ * 未開放的題目不會出現在題目列，也無法切換過去（已有的進度仍保留）。
  * 筆畫陣列使用 markRaw，避免 Vue 對成千上萬個座標點做深層響應式追蹤。
  */
 import { computed, getCurrentScope, markRaw, onScopeDispose, reactive, ref } from 'vue'
 import type { BrushSettings, DrawingStroke, WorksheetProgress, ZhuyinWorksheet, AnswerKind } from '../types/worksheet'
-import { DEFAULT_WORKSHEET_ID, WORKSHEETS } from '../data/worksheets'
+import { DEFAULT_UNLOCKED_UNTIL_ID, DEFAULT_WORKSHEET_ID, WORKSHEETS } from '../data/worksheets'
 import {
   addStroke as addStrokePure,
   clearDrawing as clearDrawingPure,
@@ -38,12 +40,26 @@ export function useWorksheetState(options: WorksheetStateOptions = {}) {
     progressMap[ws.id] = rawStrokes(normalizeProgress(ws, loaded.progress[ws.id]))
   }
 
+  // ───────── 開放題目 ─────────
+  const has = (id: string | null | undefined): id is string => !!id && worksheets.some((w) => w.id === id)
+  /** 存檔裡的設定 → 預設值 → 全部開放 */
+  function resolveUnlocked(id: string | null): string {
+    if (has(id)) return id
+    if (has(DEFAULT_UNLOCKED_UNTIL_ID)) return DEFAULT_UNLOCKED_UNTIL_ID
+    return worksheets[worksheets.length - 1].id
+  }
+  const unlockedUntilId = ref(resolveUnlocked(loaded.unlockedUntilId))
+  const available = computed(() =>
+    worksheets.slice(0, worksheets.findIndex((w) => w.id === unlockedUntilId.value) + 1),
+  )
+  const isAvailable = (id: string) => available.value.some((w) => w.id === id)
+
   const initialId =
-    loaded.lastWorksheetId && worksheets.some((w) => w.id === loaded.lastWorksheetId)
+    has(loaded.lastWorksheetId) && isAvailable(loaded.lastWorksheetId)
       ? loaded.lastWorksheetId
-      : worksheets.some((w) => w.id === DEFAULT_WORKSHEET_ID)
+      : isAvailable(DEFAULT_WORKSHEET_ID)
         ? DEFAULT_WORKSHEET_ID
-        : worksheets[0].id
+        : available.value[0].id
 
   const currentId = ref(initialId)
   const brush = reactive<BrushSettings>({ ...loaded.brush })
@@ -51,12 +67,15 @@ export function useWorksheetState(options: WorksheetStateOptions = {}) {
   const epaper = ref(loaded.epaper)
   const brushSound = ref(loaded.brushSound)
 
-  const currentIndex = computed(() => worksheets.findIndex((w) => w.id === currentId.value))
-  const worksheet = computed(() => worksheets[Math.max(0, currentIndex.value)])
+  /** 在已開放題目中的位置 */
+  const currentIndex = computed(() => available.value.findIndex((w) => w.id === currentId.value))
+  const worksheet = computed(() => worksheets.find((w) => w.id === currentId.value) ?? available.value[0])
   const progress = computed(() => progressMap[currentId.value])
   const hasPrev = computed(() => currentIndex.value > 0)
-  const hasNext = computed(() => currentIndex.value < worksheets.length - 1)
-  const completedIds = computed(() => worksheets.filter((w) => progressMap[w.id]?.recognitionCompleted).map((w) => w.id))
+  const hasNext = computed(() => currentIndex.value < available.value.length - 1)
+  const completedIds = computed(() =>
+    available.value.filter((w) => progressMap[w.id]?.recognitionCompleted).map((w) => w.id),
+  )
 
   // ───────── 儲存 ─────────
   let saveTimer: ReturnType<typeof setTimeout> | null = null
@@ -73,6 +92,7 @@ export function useWorksheetState(options: WorksheetStateOptions = {}) {
       muted: muted.value,
       epaper: epaper.value,
       brushSound: brushSound.value,
+      unlockedUntilId: unlockedUntilId.value,
       progress: { ...progressMap },
     })
   }
@@ -106,19 +126,32 @@ export function useWorksheetState(options: WorksheetStateOptions = {}) {
 
   // ───────── 題目切換 ─────────
   function selectWorksheet(id: string): void {
-    if (!worksheets.some((w) => w.id === id) || id === currentId.value) return
+    if (!isAvailable(id) || id === currentId.value) return
     saveNow() // 切換前先儲存
     currentId.value = id
     saveNow()
   }
   function goNext(wrap = false): void {
+    const list = available.value
     const i = currentIndex.value
-    if (i < worksheets.length - 1) selectWorksheet(worksheets[i + 1].id)
-    else if (wrap) selectWorksheet(worksheets[0].id)
+    if (i < list.length - 1) selectWorksheet(list[i + 1].id)
+    else if (wrap) selectWorksheet(list[0].id)
   }
   function goPrev(): void {
+    const list = available.value
     const i = currentIndex.value
-    if (i > 0) selectWorksheet(worksheets[i - 1].id)
+    if (i > 0) selectWorksheet(list[i - 1].id)
+  }
+
+  /** 大人設定：開放到 id 這一題（含）。目前題目被關閉時，跳到最後一個開放的題目 */
+  function setUnlockedUntil(id: string): void {
+    if (!has(id) || id === unlockedUntilId.value) return
+    unlockedUntilId.value = id
+    if (!isAvailable(currentId.value)) {
+      const list = available.value
+      currentId.value = list[list.length - 1].id
+    }
+    saveNow()
   }
 
   // ───────── 找注音 ─────────
@@ -174,6 +207,8 @@ export function useWorksheetState(options: WorksheetStateOptions = {}) {
 
   return {
     worksheets,
+    available,
+    unlockedUntilId,
     currentId,
     currentIndex,
     worksheet,
@@ -200,6 +235,7 @@ export function useWorksheetState(options: WorksheetStateOptions = {}) {
     setMuted,
     setEpaper,
     setBrushSound,
+    setUnlockedUntil,
     saveNow,
   }
 }

@@ -168,10 +168,28 @@ export const WORKSHEET_SEEDS: readonly WorksheetSeed[] = [
       ['mirror', '鏡子'],
     ],
   },
+  {
+    id: 'zhuyin-q',
+    target: 'ㄑ',
+    correctCount: 9,
+    distractors: ['ㄐ', 'ㄒ', 'ㄍ', 'ㄎ'],
+    illustrations: [
+      ['balloon', '氣球'],
+      ['frog', '青蛙'],
+      ['penguin', '企鵝'],
+      ['pencil', '鉛筆'],
+    ],
+  },
 ]
 
 /** Phase 1 MVP 是「找找看 ㄌ」，第一次開啟時顯示這題 */
 export const DEFAULT_WORKSHEET_ID = 'zhuyin-l'
+
+/**
+ * 預設開放到哪一題（跟著學校進度，大人可在「大人設定」調整）。
+ * 題庫裡排在這題之後的題目，小朋友預設看不到。
+ */
+export const DEFAULT_UNLOCKED_UNTIL_ID = 'zhuyin-j'
 
 const ZONES = ['top', 'left', 'right', 'bottom'] as const
 

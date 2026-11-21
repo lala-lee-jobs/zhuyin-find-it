@@ -70,9 +70,48 @@ describe('useWorksheetState：題目切換與進度', () => {
     expect(s.worksheet.value.targetSymbol).toBe('ㄅ')
     s.selectWorksheet('zhuyin-j')
     s.goNext()
-    expect(s.worksheet.value.targetSymbol).toBe('ㄐ') // 最後一題不換
+    expect(s.worksheet.value.targetSymbol).toBe('ㄐ') // 最後一個開放的題目不換
     s.goNext(true)
     expect(s.worksheet.value.targetSymbol).toBe('ㄅ') // 完成畫面的「下一個注音」可以回到第一題
+  })
+
+  it('預設只開放到 ㄐ：ㄑ 不在題目列、也切換不過去', () => {
+    const s = useWorksheetState({ storage: new StorageService(new MemoryStorage()) })
+    expect(s.available.value.map((w) => w.targetSymbol).join('')).toBe('ㄅㄆㄇㄈㄉㄊㄋㄌㄍㄎㄏㄐ')
+    s.selectWorksheet('zhuyin-q')
+    expect(s.worksheet.value.targetSymbol).toBe('ㄌ')
+  })
+
+  it('大人開放到 ㄑ 後可以玩 ㄑ；設定會記住', () => {
+    const mem = new MemoryStorage()
+    const a = useWorksheetState({ storage: new StorageService(mem) })
+    a.setUnlockedUntil('zhuyin-q')
+    a.selectWorksheet('zhuyin-q')
+    expect(a.worksheet.value.targetSymbol).toBe('ㄑ')
+    a.saveNow()
+    const b = useWorksheetState({ storage: new StorageService(mem) })
+    expect(b.unlockedUntilId.value).toBe('zhuyin-q')
+    expect(b.worksheet.value.targetSymbol).toBe('ㄑ')
+  })
+
+  it('縮小開放範圍時：目前題目被關閉就跳到最後一個開放的題目，進度保留', () => {
+    const mem = new MemoryStorage()
+    const s = useWorksheetState({ storage: new StorageService(mem) })
+    s.addStroke(stroke('l1'))
+    s.setUnlockedUntil('zhuyin-f')
+    expect(s.available.value.map((w) => w.targetSymbol).join('')).toBe('ㄅㄆㄇㄈ')
+    expect(s.worksheet.value.targetSymbol).toBe('ㄈ')
+    expect(s.hasNext.value).toBe(false)
+    s.setUnlockedUntil('zhuyin-j')
+    s.selectWorksheet('zhuyin-l')
+    expect(s.progress.value.drawingStrokes.map((x) => x.id)).toEqual(['l1'])
+  })
+
+  it('存檔的開放題目不存在時，退回預設（ㄐ）', () => {
+    const mem = new MemoryStorage()
+    mem.setItem('zhuyin-find-it', JSON.stringify({ version: 1, unlockedUntilId: 'zhuyin-zz', progress: {} }))
+    const s = useWorksheetState({ storage: new StorageService(mem) })
+    expect(s.unlockedUntilId.value).toBe('zhuyin-j')
   })
 
   it('重新整理後進度恢復（題目、塗色、答題、畫筆）', () => {
