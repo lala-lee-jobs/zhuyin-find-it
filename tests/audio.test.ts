@@ -121,3 +121,54 @@ describe('AudioService', () => {
     expect(await svc.playSymbol('X')).toBe('missing')
   })
 })
+
+describe('鼓勵語音多樣化', () => {
+  const map = {
+    found: ['a/found-1.wav', 'a/found-2.wav', 'a/found-3.wav'],
+    'try-again': ['a/try-1.wav', 'a/try-2.wav'],
+    completed: ['a/done.wav'],
+  } as const
+
+  it('每次隨機挑一句，不會連續兩次同一句', () => {
+    const svc = new AudioService({ createAudio: () => null, speech: null, feedbackMap: map })
+    let last = ''
+    const seen = new Set<string>()
+    for (let i = 0; i < 200; i++) {
+      const p = svc.pickFeedback('found')!
+      expect(p).not.toBe(last)
+      last = p
+      seen.add(p)
+    }
+    expect(seen.size).toBe(3)
+  })
+
+  it('只有一句時固定播那一句；沒有時回傳 null', () => {
+    const svc = new AudioService({
+      createAudio: () => null,
+      speech: null,
+      feedbackMap: { ...map, completed: ['a/done.wav'], 'try-again': [] },
+    })
+    expect(svc.pickFeedback('completed')).toBe('a/done.wav')
+    expect(svc.pickFeedback('completed')).toBe('a/done.wav')
+    expect(svc.pickFeedback('try-again')).toBeNull()
+  })
+
+  it('兩句時固定的隨機數也會輪流', () => {
+    const svc = new AudioService({ createAudio: () => null, speech: null, feedbackMap: map, random: () => 0 })
+    expect([1, 2, 3, 4].map(() => svc.pickFeedback('try-again'))).toEqual([
+      'a/try-1.wav',
+      'a/try-2.wav',
+      'a/try-1.wav',
+      'a/try-2.wav',
+    ])
+  })
+
+  it('對應表裡列出的鼓勵語音檔都存在', async () => {
+    const files = new Set(Object.keys(import.meta.glob('/public/audio/feedback/*.wav')))
+    const { FEEDBACK_AUDIO } = await import('../src/data/zhuyinAudioMap')
+    for (const list of Object.values(FEEDBACK_AUDIO)) {
+      expect(list.length).toBeGreaterThan(0)
+      for (const path of list) expect(files.has(`/public/${path}`), path).toBe(true)
+    }
+  })
+})

@@ -16,7 +16,13 @@
 | F9 | ㄍ | F19 | ㄗ | F29 | ㄡ |  |  |
 | F10 | ㄎ | F20 | ㄘ | F30 | ㄢ |  |  |
 
-鼓勵語音放在 `feedback/`：`found.wav`「找到了！」、`try-again.wav`「再找找看！」、`completed.wav`「太棒了！全部找到了！」，以 Google AI Studio 語音生成。
+鼓勵語音放在 `feedback/`，以 Google AI Studio 語音生成；同一種情況有多句時，播放時會隨機挑一句（不會連續兩次同一句）：
+
+- 找到了：`found-1.wav`、`found-2.wav`
+- 再找找看：`tryagain-1.wav`、`tryagain-2.wav`
+- 全部找到了：`completed.wav`
+
+新增語音時，把檔案放進 `feedback/`，再加到 `src/data/zhuyinAudioMap.ts` 的 `FEEDBACK_AUDIO` 對應陣列。
 
 缺檔時的行為：
 

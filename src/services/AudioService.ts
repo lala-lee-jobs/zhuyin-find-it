@@ -45,7 +45,9 @@ export interface AudioServiceOptions {
   /** 單一音檔逾時（毫秒） */
   timeoutMs?: number
   symbolMap?: Readonly<Record<string, string>>
-  feedbackMap?: Readonly<Record<FeedbackKind, string>>
+  feedbackMap?: Readonly<Record<FeedbackKind, readonly string[]>>
+  /** 隨機數（測試時可固定） */
+  random?: () => number
 }
 
 interface CurrentPlayback {
@@ -61,7 +63,10 @@ export class AudioService {
   private readonly resolveUrl: (path: string) => string
   private readonly timeoutMs: number
   private readonly symbolMap: Readonly<Record<string, string>>
-  private readonly feedbackMap: Readonly<Record<FeedbackKind, string>>
+  private readonly feedbackMap: Readonly<Record<FeedbackKind, readonly string[]>>
+  private readonly random: () => number
+  /** 每種鼓勵語上一次播的是哪一句，避免連續重複 */
+  private readonly lastFeedback = new Map<FeedbackKind, number>()
   private readonly missing = new Set<string>()
   private current: CurrentPlayback | null = null
 
@@ -74,6 +79,19 @@ export class AudioService {
     this.timeoutMs = options.timeoutMs ?? 5000
     this.symbolMap = options.symbolMap ?? ZHUYIN_AUDIO
     this.feedbackMap = options.feedbackMap ?? FEEDBACK_AUDIO
+    this.random = options.random ?? Math.random
+  }
+
+  /** 隨機挑一句鼓勵語；有兩句以上時不會連續兩次挑到同一句 */
+  pickFeedback(kind: FeedbackKind): string | null {
+    const list = this.feedbackMap[kind] ?? []
+    if (list.length === 0) return null
+    if (list.length === 1) return list[0]
+    const last = this.lastFeedback.get(kind)
+    let i = Math.floor(this.random() * list.length) % list.length
+    if (i === last) i = (i + 1 + Math.floor(this.random() * (list.length - 1))) % list.length
+    this.lastFeedback.set(kind, i)
+    return list[i]
   }
 
   /** 是否已知缺少此注音音檔（嘗試播放過才會知道） */
@@ -92,7 +110,7 @@ export class AudioService {
 
   async playFeedback(kind: FeedbackKind, signal?: AbortSignal): Promise<PlayOutcome> {
     if (this.muted) return 'muted'
-    const path = this.feedbackMap[kind]
+    const path = this.pickFeedback(kind)
     const outcome = path ? await this.playUrl(this.resolveUrl(path), signal) : 'missing'
     if (outcome !== 'missing' && outcome !== 'error') return outcome
     if (signal?.aborted) return 'aborted'

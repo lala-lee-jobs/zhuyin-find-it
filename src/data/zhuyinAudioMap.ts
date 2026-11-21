@@ -53,10 +53,14 @@ export const ZHUYIN_AUDIO: Readonly<Record<string, string>> = {
 
 export type FeedbackKind = 'found' | 'try-again' | 'completed'
 
-export const FEEDBACK_AUDIO: Readonly<Record<FeedbackKind, string>> = {
-  found: 'audio/feedback/found.wav',
-  'try-again': 'audio/feedback/try-again.wav',
-  completed: 'audio/feedback/completed.wav',
+/**
+ * 鼓勵語音：每種可以有好幾句，播放時隨機挑一句（不會連續兩次同一句）。
+ * 新增語音：把檔案放進 public/audio/feedback/，再加到對應的陣列即可。
+ */
+export const FEEDBACK_AUDIO: Readonly<Record<FeedbackKind, readonly string[]>> = {
+  found: ['audio/feedback/found-1.wav', 'audio/feedback/found-2.wav'],
+  'try-again': ['audio/feedback/tryagain-1.wav', 'audio/feedback/tryagain-2.wav'],
+  completed: ['audio/feedback/completed.wav'],
 }
 
 /** 畫面文字，同時也是音檔缺少時語音備援要念的句子 */
