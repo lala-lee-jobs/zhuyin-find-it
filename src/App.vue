@@ -14,6 +14,8 @@ import AnswerPopup from './components/AnswerPopup.vue'
 import CompletionPopup from './components/CompletionPopup.vue'
 import ConfirmDialog from './components/ConfirmDialog.vue'
 import SettingsDialog from './components/SettingsDialog.vue'
+import BreakPopup from './components/BreakPopup.vue'
+import { useBreakReminder } from './composables/useBreakReminder'
 import AppIcon from './components/AppIcon.vue'
 import { displayColor } from './core/palette'
 
@@ -52,6 +54,24 @@ const activeFillColor = computed(() => {
   const color = ws.worksheet.value.circles.find((c) => c.id === id)?.fillColor
   return color && displayColor(color, ws.epaper.value)
 })
+
+// ───────── 護眼休息提醒 ─────────
+// 累計遊玩（畫面看得到的時間）到設定的分鐘數就提醒；休息畫面要按「我休息好了！」才會關閉
+const breakReminder = useBreakReminder(ws.breakMinutes)
+watch(breakReminder.showing, (showing) => {
+  if (!showing) return
+  // 1. 暫停答題與塗色（休息畫面也會蓋住整個畫面） 2. 存好進度 3. 播放休息語音
+  resetTransientUi()
+  showSettings.value = false
+  confirmKind.value = null
+  audio.brush.stop(true)
+  ws.saveNow()
+  void audio.playBreak()
+})
+function onBreakDone(): void {
+  audio.service.stop()
+  breakReminder.finishBreak()
+}
 
 // ───────── 標題喇叭 ─────────
 const speakerHint = ref<string | null>(null)
@@ -247,7 +267,7 @@ watch(ws.currentId, () => stage.value?.focus({ preventScroll: true }))
           :scale="fit.scale.value"
           :dpr="fit.dpr.value"
           :active-circle-id="interaction.activeCircleId.value"
-          :locked="interaction.isBusy.value || showCompletion"
+          :locked="interaction.isBusy.value || showCompletion || breakReminder.showing.value"
           :epaper="ws.epaper.value"
           :layout="fit.layout.value"
           @circle-tap="onCircleTap"
@@ -298,13 +318,21 @@ watch(ws.currentId, () => stage.value?.focus({ preventScroll: true }))
       @replay="onReplay"
       @next="goNext(true)"
     />
+    <BreakPopup
+      :open="breakReminder.showing.value"
+      :muted="ws.muted.value"
+      @replay="audio.playBreak()"
+      @done="onBreakDone"
+    />
     <SettingsDialog
       :open="showSettings"
       :worksheets="ws.worksheets"
       :unlocked-until-id="ws.unlockedUntilId.value"
       :brush-sound="ws.brushSound.value"
       :epaper="ws.epaper.value"
+      :break-minutes="ws.breakMinutes.value"
       @set-unlocked="onSetUnlocked"
+      @set-break-minutes="ws.setBreakMinutes"
       @set-epaper="ws.setEpaper"
       @reset-all="onResetAll"
       @set-brush-sound="ws.setBrushSound"

@@ -79,6 +79,8 @@ export interface PersistedState {
   brushSound: boolean
   /** 開放到哪一題（含）；null 代表使用預設（DEFAULT_UNLOCKED_UNTIL_ID） */
   unlockedUntilId: string | null
+  /** 護眼休息提醒間隔（分鐘）：0 = 關閉、10、15（預設 10） */
+  breakMinutes: number
   progress: Record<string, WorksheetProgress>
 }
 

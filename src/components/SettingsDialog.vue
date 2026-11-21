@@ -4,12 +4,14 @@
  * - 開放題目：跟著學校進度，點一個注音 = 開放到這一題（含）為止
  * - 彩色電子紙模式：飽和配色、關閉動畫
  * - 筆刷音效：塗色時的沙沙聲（預設關閉）
+ * - 休息提醒：累計玩 10／15 分鐘提醒休息，或關閉
  * - 全部重置：清除所有題目的進度（按兩次才執行），設定保留
  * - 素材出處：CC BY 4.0 要求標示來源
  */
 import { computed, ref, watch } from 'vue'
 import type { ZhuyinWorksheet } from '../types/worksheet'
 import { CREDITS } from '../data/credits'
+import { BREAK_MINUTES_OPTIONS } from '../core/playTimer'
 import AppIcon from './AppIcon.vue'
 import ZhuyinGlyph from './ZhuyinGlyph.vue'
 
@@ -19,12 +21,14 @@ const props = defineProps<{
   unlockedUntilId: string
   brushSound: boolean
   epaper: boolean
+  breakMinutes: number
 }>()
 const emit = defineEmits<{
   (e: 'set-unlocked', id: string): void
   (e: 'set-brush-sound', on: boolean): void
   (e: 'set-epaper', on: boolean): void
   (e: 'reset-all'): void
+  (e: 'set-break-minutes', minutes: number): void
   (e: 'close'): void
 }>()
 
@@ -113,6 +117,24 @@ const summary = computed(() => {
             </span>
             <span class="switch" :class="{ on: brushSound }" aria-hidden="true"><span class="knob" /></span>
           </button>
+        </section>
+
+        <section>
+          <h4>休息提醒</h4>
+          <div class="segmented" role="radiogroup" aria-label="休息提醒">
+            <button
+              v-for="m in BREAK_MINUTES_OPTIONS"
+              :key="m"
+              type="button"
+              role="radio"
+              class="seg"
+              :class="{ on: breakMinutes === m }"
+              :aria-checked="breakMinutes === m"
+              @click="emit('set-break-minutes', m)"
+            >
+              {{ m === 0 ? '關閉' : `每 ${m} 分鐘` }}
+            </button>
+          </div>
         </section>
 
         <section>
@@ -320,6 +342,25 @@ a {
   background: #fff;
   border: 3px solid var(--ink);
   border-radius: 16px;
+  box-shadow: 0 3px 0 var(--ink);
+}
+.segmented {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+}
+.seg {
+  min-height: 44px;
+  font: inherit;
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--ink);
+  background: #fff;
+  border: 3px solid var(--ink);
+  border-radius: 14px;
+}
+.seg.on {
+  background: var(--accent-soft);
   box-shadow: 0 3px 0 var(--ink);
 }
 .btn.danger {

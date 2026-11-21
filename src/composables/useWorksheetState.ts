@@ -66,6 +66,7 @@ export function useWorksheetState(options: WorksheetStateOptions = {}) {
   const muted = ref(loaded.muted)
   const epaper = ref(loaded.epaper)
   const brushSound = ref(loaded.brushSound)
+  const breakMinutes = ref(loaded.breakMinutes)
 
   /** 在已開放題目中的位置 */
   const currentIndex = computed(() => available.value.findIndex((w) => w.id === currentId.value))
@@ -93,6 +94,7 @@ export function useWorksheetState(options: WorksheetStateOptions = {}) {
       epaper: epaper.value,
       brushSound: brushSound.value,
       unlockedUntilId: unlockedUntilId.value,
+      breakMinutes: breakMinutes.value,
       progress: { ...progressMap },
     })
   }
@@ -209,6 +211,11 @@ export function useWorksheetState(options: WorksheetStateOptions = {}) {
     brushSound.value = value
     scheduleSave()
   }
+  /** 護眼休息提醒間隔（0 = 關閉） */
+  function setBreakMinutes(value: number): void {
+    breakMinutes.value = value
+    scheduleSave()
+  }
 
   return {
     worksheets,
@@ -226,6 +233,7 @@ export function useWorksheetState(options: WorksheetStateOptions = {}) {
     muted,
     epaper,
     brushSound,
+    breakMinutes,
     selectWorksheet,
     goNext,
     goPrev,
@@ -241,6 +249,7 @@ export function useWorksheetState(options: WorksheetStateOptions = {}) {
     setMuted,
     setEpaper,
     setBrushSound,
+    setBreakMinutes,
     setUnlockedUntil,
     saveNow,
   }

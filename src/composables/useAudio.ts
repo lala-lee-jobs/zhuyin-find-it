@@ -66,11 +66,17 @@ export function useAudio(
     return service.playFeedback('completed')
   }
 
+  /** 護眼休息提醒語音（沒有音檔時用裝置語音念） */
+  function playBreak(): Promise<PlayOutcome> {
+    stopSpeaker()
+    return service.playFeedback('break')
+  }
+
   if (getCurrentScope())
     onScopeDispose(() => {
       service.stop()
       brush.stop(true)
     })
 
-  return { service, brush, speakerPlaying, playTarget, stopSpeaker, playCompletion }
+  return { service, brush, speakerPlaying, playTarget, stopSpeaker, playCompletion, playBreak }
 }

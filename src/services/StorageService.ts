@@ -6,6 +6,7 @@
  */
 import type { BrushSettings, PersistedState, WorksheetProgress } from '../types/worksheet'
 import { DEFAULT_BRUSH, isValidStroke, roundStroke } from '../core/strokes'
+import { DEFAULT_BREAK_MINUTES, isBreakMinutes } from '../core/playTimer'
 
 export const STORAGE_KEY = 'zhuyin-find-it'
 export const STORAGE_VERSION = 1
@@ -25,6 +26,7 @@ export function createDefaultState(): PersistedState {
     epaper: false,
     brushSound: false,
     unlockedUntilId: null,
+    breakMinutes: DEFAULT_BREAK_MINUTES,
     progress: {},
   }
 }
@@ -73,6 +75,7 @@ export class StorageService {
       epaper: state.epaper,
       brushSound: state.brushSound,
       unlockedUntilId: state.unlockedUntilId,
+      breakMinutes: state.breakMinutes,
       progress: Object.fromEntries(
         Object.entries(state.progress).map(([id, p]) => [
           id,
@@ -109,6 +112,7 @@ export function migrate(raw: unknown): PersistedState {
   state.epaper = data.epaper === true
   state.brushSound = data.brushSound === true
   state.unlockedUntilId = typeof data.unlockedUntilId === 'string' ? data.unlockedUntilId : null
+  state.breakMinutes = isBreakMinutes(data.breakMinutes) ? data.breakMinutes : DEFAULT_BREAK_MINUTES
   state.brush = sanitizeBrush(data.brush)
 
   const progress = data.progress

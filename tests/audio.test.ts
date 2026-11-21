@@ -127,6 +127,7 @@ describe('鼓勵語音多樣化', () => {
     found: ['a/found-1.wav', 'a/found-2.wav', 'a/found-3.wav'],
     'try-again': ['a/try-1.wav', 'a/try-2.wav'],
     completed: ['a/done.wav'],
+    break: ['a/break.wav'],
   } as const
 
   it('每次隨機挑一句，不會連續兩次同一句', () => {
@@ -165,8 +166,9 @@ describe('鼓勵語音多樣化', () => {
 
   it('對應表裡列出的鼓勵語音檔都存在', async () => {
     const files = new Set(Object.keys(import.meta.glob('/public/audio/feedback/*.wav')))
-    const { FEEDBACK_AUDIO } = await import('../src/data/zhuyinAudioMap')
-    for (const list of Object.values(FEEDBACK_AUDIO)) {
+    const { FEEDBACK_AUDIO, OPTIONAL_FEEDBACK } = await import('../src/data/zhuyinAudioMap')
+    for (const [kind, list] of Object.entries(FEEDBACK_AUDIO)) {
+      if (OPTIONAL_FEEDBACK.includes(kind as keyof typeof FEEDBACK_AUDIO)) continue
       expect(list.length).toBeGreaterThan(0)
       for (const path of list) expect(files.has(`/public/${path}`), path).toBe(true)
     }
