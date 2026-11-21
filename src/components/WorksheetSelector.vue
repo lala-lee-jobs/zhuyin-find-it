@@ -1,9 +1,10 @@
 <script setup lang="ts">
+import { nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import type { ZhuyinWorksheet } from '../types/worksheet'
 import AppIcon from './AppIcon.vue'
 import ZhuyinGlyph from './ZhuyinGlyph.vue'
 
-defineProps<{
+const props = defineProps<{
   worksheets: readonly ZhuyinWorksheet[]
   currentId: string
   completedIds: readonly string[]
@@ -15,6 +16,49 @@ const emit = defineEmits<{
   (e: 'prev'): void
   (e: 'next'): void
 }>()
+
+// ───────── 目前題目不在可視範圍時，自動捲到看得見 ─────────
+const chips = ref<HTMLDivElement | null>(null)
+const EDGE_PAD = 8
+
+function prefersInstant(): boolean {
+  if (typeof document === 'undefined') return true
+  // 電子紙模式、系統設定「減少動態效果」：直接跳過去，不做捲動動畫
+  if (document.documentElement.dataset.display === 'epaper') return true
+  return typeof window.matchMedia === 'function' && window.matchMedia('(prefers-reduced-motion: reduce)').matches
+}
+
+function ensureCurrentVisible(smooth: boolean): void {
+  const box = chips.value
+  if (!box) return
+  const el = box.querySelector<HTMLElement>(`[data-id="${CSS.escape(props.currentId)}"]`)
+  if (!el) return
+  const c = box.getBoundingClientRect()
+  const r = el.getBoundingClientRect()
+  let delta = 0
+  if (r.left < c.left + EDGE_PAD) delta = r.left - c.left - EDGE_PAD
+  else if (r.right > c.right - EDGE_PAD) delta = r.right - c.right + EDGE_PAD
+  if (delta === 0) return
+  const behavior = smooth && !prefersInstant() ? 'smooth' : 'auto'
+  box.scrollBy({ left: delta, behavior })
+}
+
+// 換題（上一題／下一題／完成後下一個注音）、開放題目改變：捲過去
+watch(
+  () => [props.currentId, props.worksheets.length] as const,
+  () => nextTick(() => ensureCurrentVisible(true)),
+)
+
+// 第一次顯示、螢幕旋轉或寬度改變：直接跳過去
+let observer: ResizeObserver | null = null
+onMounted(() => {
+  ensureCurrentVisible(false)
+  if (typeof ResizeObserver !== 'undefined' && chips.value) {
+    observer = new ResizeObserver(() => ensureCurrentVisible(false))
+    observer.observe(chips.value)
+  }
+})
+onBeforeUnmount(() => observer?.disconnect())
 </script>
 
 <template>
@@ -22,10 +66,11 @@ const emit = defineEmits<{
     <button type="button" class="nav" :disabled="!hasPrev" aria-label="上一題" @click="emit('prev')">
       <AppIcon name="prev" />
     </button>
-    <div class="chips" role="tablist" aria-label="選擇注音">
+    <div ref="chips" class="chips" role="tablist" aria-label="選擇注音">
       <button
         v-for="ws in worksheets"
         :key="ws.id"
+        :data-id="ws.id"
         type="button"
         role="tab"
         class="chip"
