@@ -60,7 +60,7 @@ const done = computed(() => props.total > 0 && props.found >= props.total)
     transform 0.3s ease;
 }
 .star.on {
-  color: #ffc43d;
+  color: var(--accent);
   transform: scale(1.08);
 }
 .text {
@@ -68,6 +68,6 @@ const done = computed(() => props.total > 0 && props.found >= props.total)
   line-height: 1.1;
 }
 .done .text {
-  color: #c27a00;
+  color: var(--accent-deep);
 }
 </style>

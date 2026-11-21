@@ -6,6 +6,7 @@
 import { computed, ref } from 'vue'
 import type { BrushSettings } from '../types/worksheet'
 import { BRUSH_COLORS, BRUSH_WIDTHS } from '../core/strokes'
+import { displayColor } from '../core/palette'
 import AppIcon from './AppIcon.vue'
 
 const props = defineProps<{
@@ -14,6 +15,7 @@ const props = defineProps<{
   canClear: boolean
   vertical: boolean
   collapsible: boolean
+  epaper: boolean
 }>()
 const emit = defineEmits<{
   (e: 'update:brush', patch: Partial<BrushSettings>): void
@@ -25,6 +27,9 @@ const emit = defineEmits<{
 const collapsed = ref(false)
 const isCollapsed = computed(() => props.collapsible && collapsed.value)
 const currentColorName = computed(() => BRUSH_COLORS.find((c) => c.value === props.brush.color)?.name ?? '')
+
+/** 畫面上顯示的顏色（電子紙模式會換成飽和色） */
+const shown = (color: string) => displayColor(color, props.epaper)
 
 function pickColor(value: string): void {
   emit('update:brush', { color: value, tool: 'brush' })
@@ -41,7 +46,7 @@ function pickColor(value: string): void {
       :aria-label="isCollapsed ? '打開畫筆工具' : '收起畫筆工具'"
       @click="collapsed = !collapsed"
     >
-      <span class="current-dot" :style="{ background: brush.tool === 'eraser' ? '#fff' : brush.color }">
+      <span class="current-dot" :style="{ background: brush.tool === 'eraser' ? '#fff' : shown(brush.color) }">
         <AppIcon v-if="brush.tool === 'eraser'" name="eraser" :size="22" />
       </span>
     </button>
@@ -55,7 +60,7 @@ function pickColor(value: string): void {
           role="radio"
           class="swatch"
           :class="{ active: brush.tool === 'brush' && brush.color === c.value }"
-          :style="{ background: c.value }"
+          :style="{ background: shown(c.value) }"
           :aria-checked="brush.tool === 'brush' && brush.color === c.value"
           :aria-label="c.name"
           @click="pickColor(c.value)"
@@ -79,7 +84,7 @@ function pickColor(value: string): void {
             :style="{
               width: `${8 + w.value / 2.4}px`,
               height: `${8 + w.value / 2.4}px`,
-              background: brush.tool === 'eraser' ? '#ccc' : brush.color,
+              background: brush.tool === 'eraser' ? '#ccc' : shown(brush.color),
             }"
           />
         </button>
@@ -176,7 +181,7 @@ function pickColor(value: string): void {
   box-shadow: 0 1px 0 var(--ink);
 }
 .tool.active {
-  background: #ffeb99;
+  background: var(--accent-soft);
 }
 .tool:disabled {
   opacity: 0.35;

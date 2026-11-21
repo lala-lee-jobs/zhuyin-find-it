@@ -17,6 +17,7 @@ import { clientToLogical, computeBackingSize, computeFitScale } from '../src/can
 import { findCircleAt, isPointInCircle } from '../src/canvas/hitTesting'
 import { WORKSHEETS, findWorksheet } from '../src/data/worksheets'
 import type { DrawingStroke } from '../src/types/worksheet'
+import { displayColor } from '../src/core/palette'
 
 // ───────── 假 Canvas ─────────
 interface Op {
@@ -24,6 +25,7 @@ interface Op {
   op: string
   gco?: string
   arg?: string
+  style?: string
 }
 
 function createFakeFactory(log: Op[]) {
@@ -62,7 +64,13 @@ function createFakeFactory(log: Op[]) {
         log.push({ canvas: name, op: 'fill', gco: this.globalCompositeOperation })
       },
       stroke() {
-        log.push({ canvas: name, op: 'stroke', gco: this.globalCompositeOperation, arg: String(this.lineWidth) })
+        log.push({
+          canvas: name,
+          op: 'stroke',
+          gco: this.globalCompositeOperation,
+          arg: String(this.lineWidth),
+          style: String(this.strokeStyle),
+        })
       },
       drawImage(src: { name: string }) {
         log.push({ canvas: name, op: 'drawImage', gco: this.globalCompositeOperation, arg: src.name })
@@ -171,6 +179,26 @@ describe('19.3 Canvas 合成管線', () => {
     expect(log.some((o) => o.canvas === 'paint' && o.op === 'clear')).toBe(true)
     expect(log.filter((o) => o.canvas === 'paint' && o.op === 'stroke')).toHaveLength(1)
     expect(surface.drawnStrokeCount).toBe(1)
+  })
+
+  it('彩色電子紙模式：用飽和色重畫既有筆畫，存檔顏色不變', () => {
+    const log: Op[] = []
+    const { factory } = createFakeFactory(log)
+    const surface = new GlyphPaintSurface(factory)
+    surface.configure(800, 1100, 1, layout)
+    const strokes = [brush('a')]
+    surface.syncStrokes(strokes)
+    const paintStyles = () => log.filter((o) => o.canvas === 'paint' && o.op === 'stroke').map((o) => o.style)
+    expect(paintStyles()).toEqual(['#FF8FB1'])
+
+    log.length = 0
+    surface.setEpaper(true)
+    expect(paintStyles()).toEqual([displayColor('#FF8FB1', true)])
+    expect(strokes[0].color).toBe('#FF8FB1')
+
+    log.length = 0
+    surface.setEpaper(true) // 沒變就不重畫
+    expect(paintStyles()).toEqual([])
   })
 
   it('Canvas resize 後筆畫仍存在（以向量資料重畫）', () => {

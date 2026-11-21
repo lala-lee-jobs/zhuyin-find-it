@@ -16,6 +16,7 @@ withDefaults(
       | 'star'
       | 'palette'
       | 'replay'
+      | 'epaper'
     size?: number
   }>(),
   { size: 28 },
@@ -79,6 +80,11 @@ withDefaults(
     </template>
     <template v-else-if="name === 'star'">
       <path d="M16 3l3.8 8 8.7 1-6.4 6 1.7 8.6L16 22.4 8.2 26.6 9.9 18 3.5 12l8.7-1z" fill="currentColor" />
+    </template>
+    <template v-else-if="name === 'epaper'">
+      <rect x="7" y="3.5" width="18" height="25" rx="3" fill="#fff" />
+      <path d="M11 9h10M11 13.5h10M11 18h6" />
+      <circle cx="16" cy="24" r="1.4" fill="currentColor" />
     </template>
     <template v-else-if="name === 'palette'">
       <path

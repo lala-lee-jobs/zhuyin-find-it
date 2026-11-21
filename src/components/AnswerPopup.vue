@@ -97,7 +97,7 @@ const glyphFill = computed(() =>
 }
 .deco-star {
   position: absolute;
-  color: #ffd23f;
+  color: var(--accent-bright);
   filter: drop-shadow(0 0 0 var(--ink));
 }
 .deco-star.s1 {
@@ -153,7 +153,7 @@ const glyphFill = computed(() =>
   position: absolute;
   left: 50%;
   top: 50%;
-  color: #ffc43d;
+  color: var(--accent);
   transform: translate(-50%, -50%);
   animation: burst 0.8s ease-out forwards;
   --angle: calc(var(--i) * 45deg);

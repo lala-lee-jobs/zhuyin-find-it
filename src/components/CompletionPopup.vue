@@ -2,9 +2,10 @@
 import { computed } from 'vue'
 import { FEEDBACK_TEXT } from '../data/zhuyinAudioMap'
 import AppIcon from './AppIcon.vue'
+import { displayColor } from '../core/palette'
 import ZhuyinGlyph from './ZhuyinGlyph.vue'
 
-const props = defineProps<{ open: boolean; symbol: string }>()
+const props = defineProps<{ open: boolean; symbol: string; epaper: boolean }>()
 const emit = defineEmits<{
   (e: 'continue'): void
   (e: 'replay'): void
@@ -18,7 +19,7 @@ const confetti = computed(() =>
     ? Array.from({ length: 22 }, (_, i) => ({
         left: `${(i * 37) % 100}%`,
         delay: `${(i % 7) * 0.08}s`,
-        color: COLORS[i % COLORS.length],
+        color: displayColor(COLORS[i % COLORS.length], props.epaper),
         rotate: `${(i * 53) % 360}deg`,
       }))
     : [],
@@ -28,7 +29,7 @@ const confetti = computed(() =>
 <template>
   <Transition name="fade">
     <div v-if="open" class="completion-layer" @pointerdown.stop>
-      <div class="confetti" aria-hidden="true">
+      <div v-if="!epaper" class="confetti" aria-hidden="true">
         <span
           v-for="(c, i) in confetti"
           :key="i"
@@ -41,7 +42,7 @@ const confetti = computed(() =>
           <AppIcon name="star" :size="44" class="st st2" />
           <AppIcon name="star" :size="30" class="st st3" />
         </div>
-        <ZhuyinGlyph :symbol="symbol" :size="92" variant="bubble" fill="#FFEB99" class="glyph" />
+        <ZhuyinGlyph :symbol="symbol" :size="92" variant="bubble" :fill="displayColor('#FFEB99', epaper)" class="glyph" />
         <h2>{{ FEEDBACK_TEXT.completed }}</h2>
         <div class="actions">
           <button type="button" class="action primary" @click="emit('continue')">
@@ -92,7 +93,7 @@ const confetti = computed(() =>
   justify-content: center;
   align-items: flex-end;
   gap: 8px;
-  color: #ffc43d;
+  color: var(--accent);
 }
 .st {
   animation: twinkle 1.6s ease-in-out infinite;
@@ -135,7 +136,7 @@ h2 {
   box-shadow: 0 1px 0 var(--ink);
 }
 .action.primary {
-  background: #ffeb99;
+  background: var(--accent-soft);
 }
 .confetti span {
   position: absolute;

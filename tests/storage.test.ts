@@ -21,6 +21,7 @@ function sample(): PersistedState {
     lastWorksheetId: 'zhuyin-l',
     brush: { color: '#5EC2FF', width: 42, tool: 'eraser' },
     muted: true,
+    epaper: true,
     progress: {
       'zhuyin-l': {
         worksheetId: 'zhuyin-l',
@@ -44,8 +45,18 @@ describe('19.4 重新整理後進度恢復（localStorage）', () => {
     expect(loaded.lastWorksheetId).toBe('zhuyin-l')
     expect(loaded.brush).toEqual({ color: '#5EC2FF', width: 42, tool: 'eraser' })
     expect(loaded.muted).toBe(true)
+    expect(loaded.epaper).toBe(true)
     expect(loaded.progress['zhuyin-l'].foundCircleIds).toEqual(['zhuyin-l-c01'])
     expect(loaded.progress['zhuyin-l'].drawingStrokes[0].points[0]).toEqual({ x: 300.1, y: 601 })
+  })
+
+  it('舊存檔沒有電子紙欄位時，預設為一般模式', () => {
+    const mem = new MemoryStorage()
+    const { epaper: _omit, ...old } = sample()
+    mem.setItem(STORAGE_KEY, JSON.stringify(old))
+    const loaded = new StorageService(mem).load()
+    expect(loaded.epaper).toBe(false)
+    expect(loaded.muted).toBe(true)
   })
 
   it('儲存的是向量資料與版本號，不含 Base64 圖片', () => {

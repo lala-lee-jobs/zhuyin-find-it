@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, onBeforeUnmount, ref, watch } from 'vue'
+import { computed, onBeforeUnmount, ref, watch, watchEffect } from 'vue'
 import type { DrawingStroke, ZhuyinCircle } from './types/worksheet'
 import { useWorksheetState } from './composables/useWorksheetState'
 import { useAudio } from './composables/useAudio'
@@ -14,6 +14,7 @@ import AnswerPopup from './components/AnswerPopup.vue'
 import CompletionPopup from './components/CompletionPopup.vue'
 import ConfirmDialog from './components/ConfirmDialog.vue'
 import AppIcon from './components/AppIcon.vue'
+import { displayColor } from './core/palette'
 
 const ws = useWorksheetState()
 const audio = useAudio(ws.muted)
@@ -47,7 +48,8 @@ function onCircleTap(circle: ZhuyinCircle): void {
 
 const activeFillColor = computed(() => {
   const id = interaction.activeCircleId.value
-  return ws.worksheet.value.circles.find((c) => c.id === id)?.fillColor
+  const color = ws.worksheet.value.circles.find((c) => c.id === id)?.fillColor
+  return color && displayColor(color, ws.epaper.value)
 })
 
 // ───────── 標題喇叭 ─────────
@@ -127,6 +129,17 @@ function toggleMute(): void {
   ws.setMuted(!ws.muted.value)
 }
 
+// ───────── 彩色電子紙模式 ─────────
+// 掛在 <html> 上，讓全域 CSS 換成飽和配色並關閉動畫（電子紙更新慢，動畫會留殘影）
+watchEffect(() => {
+  if (typeof document === 'undefined') return
+  if (ws.epaper.value) document.documentElement.dataset.display = 'epaper'
+  else delete document.documentElement.dataset.display
+})
+function toggleEpaper(): void {
+  ws.setEpaper(!ws.epaper.value)
+}
+
 // 換題時把焦點留在學習單，避免螢幕閱讀器停在舊按鈕
 watch(ws.currentId, () => stage.value?.focus({ preventScroll: true }))
 </script>
@@ -144,15 +157,28 @@ watch(ws.currentId, () => stage.value?.focus({ preventScroll: true }))
         @prev="goPrev"
         @next="goNext()"
       />
-      <button
-        type="button"
-        class="mute-btn"
-        :aria-pressed="ws.muted.value"
-        :aria-label="ws.muted.value ? '打開聲音' : '靜音'"
-        @click="toggleMute"
-      >
-        <AppIcon :name="ws.muted.value ? 'speaker-off' : 'speaker'" />
-      </button>
+      <div class="top-actions">
+        <button
+          type="button"
+          class="round-btn epaper-btn"
+          :class="{ on: ws.epaper.value }"
+          :aria-pressed="ws.epaper.value"
+          aria-label="彩色電子紙模式"
+          :title="ws.epaper.value ? '彩色電子紙模式：開' : '彩色電子紙模式：關'"
+          @click="toggleEpaper"
+        >
+          <AppIcon name="epaper" />
+        </button>
+        <button
+          type="button"
+          class="round-btn"
+          :aria-pressed="ws.muted.value"
+          :aria-label="ws.muted.value ? '打開聲音' : '靜音'"
+          @click="toggleMute"
+        >
+          <AppIcon :name="ws.muted.value ? 'speaker-off' : 'speaker'" />
+        </button>
+      </div>
     </header>
 
     <main ref="stage" class="stage" tabindex="-1">
@@ -166,6 +192,7 @@ watch(ws.currentId, () => stage.value?.focus({ preventScroll: true }))
           :dpr="fit.dpr.value"
           :active-circle-id="interaction.activeCircleId.value"
           :locked="interaction.isBusy.value || showCompletion"
+          :epaper="ws.epaper.value"
           @circle-tap="onCircleTap"
           @stroke-commit="onStrokeCommit"
         />
@@ -192,6 +219,7 @@ watch(ws.currentId, () => stage.value?.focus({ preventScroll: true }))
         :can-clear="ws.progress.value.drawingStrokes.length > 0"
         :vertical="fit.landscape.value"
         :collapsible="fit.compact.value"
+        :epaper="ws.epaper.value"
         @update:brush="ws.setBrush"
         @undo="ws.undoStroke"
         @clear="confirmKind = 'clear'"
@@ -203,6 +231,7 @@ watch(ws.currentId, () => stage.value?.focus({ preventScroll: true }))
     <CompletionPopup
       :open="showCompletion"
       :symbol="ws.worksheet.value.targetSymbol"
+      :epaper="ws.epaper.value"
       @continue="onContinueColoring"
       @replay="onReplay"
       @next="goNext(true)"
@@ -247,7 +276,12 @@ watch(ws.currentId, () => stage.value?.focus({ preventScroll: true }))
   gap: 10px;
   min-width: 0;
 }
-.mute-btn {
+.top-actions {
+  flex: 0 0 auto;
+  display: flex;
+  gap: 8px;
+}
+.round-btn {
   flex: 0 0 auto;
   width: 50px;
   height: 50px;
@@ -258,6 +292,9 @@ watch(ws.currentId, () => stage.value?.focus({ preventScroll: true }))
   background: #fff;
   color: var(--ink);
   box-shadow: 0 3px 0 var(--ink);
+}
+.epaper-btn.on {
+  background: var(--accent-soft);
 }
 .stage {
   grid-area: stage;

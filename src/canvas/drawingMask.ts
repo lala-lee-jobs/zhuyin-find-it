@@ -17,6 +17,7 @@ import type { DrawingStroke } from '../types/worksheet'
 import type { GlyphLayout } from './glyphGeometry'
 import { drawGlyphMask, drawGlyphRing } from './renderZhuyin'
 import type { Ctx2D } from './renderDecorations'
+import { displayColor } from '../core/palette'
 
 export type CanvasLike = HTMLCanvasElement | OffscreenCanvas
 export type CanvasFactory = (width: number, height: number) => CanvasLike
@@ -38,13 +39,13 @@ function getCtx(canvas: CanvasLike): Ctx2D {
 }
 
 /** 以平滑曲線（中點二次曲線）畫一筆；單點畫圓點 */
-export function drawStroke(ctx: Ctx2D, stroke: DrawingStroke, k: number): void {
+export function drawStroke(ctx: Ctx2D, stroke: DrawingStroke, k: number, epaper = false): void {
   const pts = stroke.points
   if (pts.length === 0) return
   ctx.save()
   ctx.setTransform(k, 0, 0, k, 0, 0)
   ctx.globalCompositeOperation = stroke.tool === 'eraser' ? 'destination-out' : 'source-over'
-  ctx.strokeStyle = stroke.tool === 'eraser' ? '#000' : stroke.color
+  ctx.strokeStyle = stroke.tool === 'eraser' ? '#000' : displayColor(stroke.color, epaper)
   ctx.fillStyle = ctx.strokeStyle
   ctx.lineWidth = stroke.width
   ctx.lineCap = 'round'
@@ -83,6 +84,7 @@ export class GlyphPaintSurface {
   private layout: GlyphLayout | null = null
   private drawnIds: string[] = []
   private strokes: readonly DrawingStroke[] = []
+  private epaper = false
 
   constructor(private readonly factory: CanvasFactory = defaultCanvasFactory) {}
 
@@ -111,6 +113,13 @@ export class GlyphPaintSurface {
     this.rebuildPaint()
   }
 
+  /** 切換彩色電子紙配色：用向量資料以新顏色重畫全部筆畫 */
+  setEpaper(epaper: boolean): void {
+    if (epaper === this.epaper) return
+    this.epaper = epaper
+    this.rebuildPaint()
+  }
+
   /**
    * 同步筆畫：如果新的陣列只是在後面多了筆畫，就只畫新增的；
    * 否則（Undo、清除、換題）整個重畫。
@@ -122,7 +131,7 @@ export class GlyphPaintSurface {
     if (!this.paint) return
     if (isAppend) {
       const ctx = getCtx(this.paint)
-      for (let i = prev.length; i < strokes.length; i++) drawStroke(ctx, strokes[i], this.k)
+      for (let i = prev.length; i < strokes.length; i++) drawStroke(ctx, strokes[i], this.k, this.epaper)
       this.drawnIds = strokes.map((s) => s.id)
     } else {
       this.rebuildPaint()
@@ -146,7 +155,7 @@ export class GlyphPaintSurface {
     s.clearRect(0, 0, this.width, this.height)
     s.drawImage(this.paint, 0, 0)
     s.restore()
-    if (active) drawStroke(s, active, this.k)
+    if (active) drawStroke(s, active, this.k, this.epaper)
     s.save()
     s.setTransform(1, 0, 0, 1, 0, 0)
     s.globalCompositeOperation = 'destination-in'
@@ -186,7 +195,7 @@ export class GlyphPaintSurface {
     ctx.globalCompositeOperation = 'source-over'
     ctx.clearRect(0, 0, this.width, this.height)
     ctx.restore()
-    for (const stroke of this.strokes) drawStroke(ctx, stroke, this.k)
+    for (const stroke of this.strokes) drawStroke(ctx, stroke, this.k, this.epaper)
     this.drawnIds = this.strokes.map((s) => s.id)
   }
 }

@@ -3,6 +3,7 @@ import type { ZhuyinCircle } from '../types/worksheet'
 import { INK } from './layout'
 import { drawSolidGlyph } from './renderZhuyin'
 import type { Ctx2D } from './renderDecorations'
+import { EPAPER_ACTIVE_RING, displayColor } from '../core/palette'
 
 export const FILL_ANIMATION_MS = 420
 
@@ -14,6 +15,8 @@ export interface CircleRenderOptions {
   activeCircleId: string | null
   width: number
   height: number
+  /** 彩色電子紙模式：飽和配色、不播填色動畫（避免殘影） */
+  epaper?: boolean
 }
 
 function easeOutBack(t: number): number {
@@ -41,7 +44,7 @@ export function renderCircles(ctx: Ctx2D, circles: readonly ZhuyinCircle[], opts
     if (c.isFound) {
       const start = opts.animations.get(c.id)
       let t = 1
-      if (start !== undefined) {
+      if (start !== undefined && !opts.epaper) {
         t = Math.min(1, Math.max(0, (opts.now - start) / FILL_ANIMATION_MS))
         if (t < 1) animating = true
       }
@@ -52,7 +55,7 @@ export function renderCircles(ctx: Ctx2D, circles: readonly ZhuyinCircle[], opts
       ctx.clip()
       ctx.beginPath()
       ctx.arc(c.x, c.y, r, 0, Math.PI * 2)
-      ctx.fillStyle = c.fillColor ?? '#FFEB99'
+      ctx.fillStyle = displayColor(c.fillColor ?? '#FFEB99', opts.epaper === true)
       ctx.fill()
       ctx.restore()
     }
@@ -61,8 +64,8 @@ export function renderCircles(ctx: Ctx2D, circles: readonly ZhuyinCircle[], opts
     if (c.id === opts.activeCircleId) {
       ctx.beginPath()
       ctx.arc(c.x, c.y, c.radius + 7, 0, Math.PI * 2)
-      ctx.strokeStyle = 'rgba(255, 196, 61, 0.85)'
-      ctx.lineWidth = 8
+      ctx.strokeStyle = opts.epaper ? EPAPER_ACTIVE_RING : 'rgba(255, 196, 61, 0.85)'
+      ctx.lineWidth = opts.epaper ? 10 : 8
       ctx.stroke()
     }
 

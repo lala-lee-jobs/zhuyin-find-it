@@ -59,6 +59,10 @@ export function useCanvasDrawing(options: UseCanvasDrawingOptions) {
     surface.configure(width, height, k, layout)
   }
 
+  function setEpaper(epaper: boolean): void {
+    surface.setEpaper(epaper)
+  }
+
   function sync(strokes: readonly DrawingStroke[]): void {
     surface.syncStrokes(strokes)
   }
@@ -69,5 +73,5 @@ export function useCanvasDrawing(options: UseCanvasDrawingOptions) {
 
   if (getCurrentScope()) onScopeDispose(discard)
 
-  return { isDrawing, begin, extend, end, discard, configure, sync, compose }
+  return { isDrawing, begin, extend, end, discard, configure, setEpaper, sync, compose }
 }

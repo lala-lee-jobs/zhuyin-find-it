@@ -73,6 +73,8 @@ export interface PersistedState {
   lastWorksheetId: string | null
   brush: BrushSettings
   muted: boolean
+  /** 彩色電子紙模式（舊存檔沒有這個欄位時視為 false） */
+  epaper: boolean
   progress: Record<string, WorksheetProgress>
 }
 

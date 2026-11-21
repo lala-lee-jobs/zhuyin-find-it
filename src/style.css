@@ -1,6 +1,11 @@
 :root {
   --ink: #1f1f1f;
   --paper-bg: #f6f2e9;
+  /* 強調色：淡黃底、金黃線（電子紙模式會換成飽和色） */
+  --accent-soft: #ffeb99;
+  --accent: #ffc43d;
+  --accent-bright: #ffd23f;
+  --accent-deep: #c27a00;
   font-family: 'Yuanti TC', 'jf-openhuninn-2.0', 'PingFang TC', 'Noto Sans TC', 'Microsoft JhengHei', system-ui,
     sans-serif;
   color: var(--ink);
@@ -41,4 +46,24 @@ button {
 button:focus-visible {
   outline: 3px solid #5ec2ff;
   outline-offset: 3px;
+}
+
+/* ───────── 彩色電子紙模式 ─────────
+ * 電子紙飽和度低：淡色換成飽和色、背景改純白提高對比；
+ * 更新速度慢：關閉動畫與轉場，避免殘影。 */
+:root[data-display='epaper'] {
+  --paper-bg: #ffffff;
+  --accent-soft: #ffc400;
+  --accent: #ff8a00;
+  --accent-bright: #ffb000;
+  --accent-deep: #a35200;
+}
+:root[data-display='epaper'] body {
+  background: #fff;
+}
+:root[data-display='epaper'] *,
+:root[data-display='epaper'] *::before,
+:root[data-display='epaper'] *::after {
+  animation: none !important;
+  transition: none !important;
 }

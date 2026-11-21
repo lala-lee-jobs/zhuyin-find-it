@@ -67,7 +67,7 @@ const label = computed(() => (props.muted ? `已靜音，${props.symbol} 的發�
   box-shadow: 0 1px 0 var(--ink);
 }
 .speaker-btn.playing {
-  background: #ffeb99;
+  background: var(--accent-soft);
   animation: speaker-pulse 0.7s ease-in-out infinite;
 }
 .speaker-btn.muted {
@@ -77,7 +77,7 @@ const label = computed(() => (props.muted ? `已靜音，${props.symbol} 的發�
   position: absolute;
   inset: -6px;
   border-radius: 50%;
-  border: 3px solid #ffc43d;
+  border: 3px solid var(--accent);
   animation: ripple 1s ease-out infinite;
 }
 .speaker-hint {

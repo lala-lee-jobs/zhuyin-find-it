@@ -33,6 +33,8 @@ const props = defineProps<{
   activeCircleId: string | null
   /** Popup 開啟中：不接受點擊與畫筆 */
   locked: boolean
+  /** 彩色電子紙模式 */
+  epaper: boolean
 }>()
 
 const emit = defineEmits<{
@@ -95,6 +97,7 @@ function renderFrame(now: number): void {
         activeCircleId: props.activeCircleId,
         width,
         height,
+        epaper: props.epaper,
       })
       if (animating) requestRender('circles')
       else fillAnimations.clear()
@@ -117,6 +120,7 @@ function applySize(): void {
     if (c.height !== height) c.height = height
   }
   // 以向量筆畫重建：resize 後塗色不會遺失
+  drawing.setEpaper(props.epaper)
   drawing.configure(width, height, k, glyphLayout.value)
   drawing.sync(props.strokes)
   requestRender('all')
@@ -173,6 +177,15 @@ watch(
       for (const cid of ids) if (!before.has(cid)) fillAnimations.set(cid, now)
     }
     requestRender('circles')
+  },
+)
+
+watch(
+  () => props.epaper,
+  (epaper) => {
+    drawing.setEpaper(epaper)
+    fillAnimations.clear()
+    requestRender('all')
   },
 )
 

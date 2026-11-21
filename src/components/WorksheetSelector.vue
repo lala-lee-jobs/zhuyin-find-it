@@ -85,7 +85,7 @@ const emit = defineEmits<{
   box-shadow: none;
 }
 .chip.active {
-  background: #ffeb99;
+  background: var(--accent-soft);
   transform: translateY(-2px);
 }
 .chip:active,
@@ -97,7 +97,7 @@ const emit = defineEmits<{
   position: absolute;
   top: -7px;
   right: -7px;
-  color: #ffc43d;
+  color: var(--accent);
   stroke: var(--ink);
   stroke-width: 2;
 }
