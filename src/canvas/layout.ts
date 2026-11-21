@@ -26,7 +26,7 @@ export const HEADER = {
 } as const
 
 /** 中央大注音的外框方塊（邏輯座標）。注音骨架 0–100 對應到這個方塊。 */
-export const GLYPH_BOX = { x: 250, y: 471, size: 300 } as const
+export const GLYPH_BOX = { x: 250, y: 470, size: 300 } as const
 
 /**
  * 泡泡字樣式（邏輯座標單位）
@@ -39,33 +39,34 @@ export const GLYPH_STYLE = {
   maskBleed: 4,
 } as const
 
-export const CIRCLE_RADIUS = 48
+export const CIRCLE_RADIUS = 46
 export const CIRCLE_JITTER = 4
 
 type CircleZone = 'top' | 'left' | 'right' | 'bottom'
 
-/** 上下整排：每排 5 個 */
-const FULL_ROW_X = [80, 240, 400, 560, 720]
+/** 上下整排：每排 6 個 */
+const FULL_ROW_X = [75, 205, 335, 465, 595, 725]
 /** 中央大注音兩側：左右各 2 欄 */
 const SIDE_X: ReadonlyArray<[number, 'left' | 'right']> = [
-  [72, 'left'],
-  [184, 'left'],
-  [616, 'right'],
-  [728, 'right'],
+  [75, 'left'],
+  [185, 'left'],
+  [615, 'right'],
+  [725, 'right'],
 ]
-/** 7 排，間距 137：上 2 排整排、中間 3 排在大注音兩側、下 2 排整排 */
+/** 8 排，間距 117：上 2 排整排、中間 4 排在大注音兩側、下 2 排整排 */
 const ROWS: ReadonlyArray<[number, CircleZone | 'side']> = [
   [210, 'top'],
-  [347, 'top'],
-  [484, 'side'],
-  [621, 'side'],
-  [758, 'side'],
-  [895, 'bottom'],
-  [1032, 'bottom'],
+  [327, 'top'],
+  [444, 'side'],
+  [561, 'side'],
+  [678, 'side'],
+  [795, 'side'],
+  [912, 'bottom'],
+  [1029, 'bottom'],
 ]
 
 /**
- * 32 個圓圈位置：上 2 排 × 5、中間左右各 2 × 3 排、下 2 排 × 5，
+ * 40 個圓圈位置：上 2 排 × 6、中間左右各 2 × 4 排、下 2 排 × 6，
  * 每題再以 seeded random 做 ±4 的微調，讓排版自然但不重疊。
  */
 export const CIRCLE_SLOTS: ReadonlyArray<{ x: number; y: number; zone: CircleZone }> = ROWS.flatMap(([y, zone]) =>

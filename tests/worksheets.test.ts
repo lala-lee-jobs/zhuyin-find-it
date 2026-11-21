@@ -10,8 +10,8 @@ describe('題庫資料', () => {
     expect(new Set(WORKSHEETS.map((w) => w.id)).size).toBe(12)
   })
 
-  it.each(WORKSHEETS.map((w) => [w.title, w] as const))('%s：32 個圓圈、8–10 個正確', (_title, ws) => {
-    expect(ws.circles.length).toBe(32)
+  it.each(WORKSHEETS.map((w) => [w.title, w] as const))('%s：40 個圓圈、8–10 個正確', (_title, ws) => {
+    expect(ws.circles.length).toBe(40)
     const correct = ws.circles.filter((c) => c.symbol === ws.targetSymbol).length
     expect(correct).toBeGreaterThanOrEqual(8)
     expect(correct).toBeLessThanOrEqual(10)
