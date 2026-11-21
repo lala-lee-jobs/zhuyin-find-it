@@ -53,7 +53,7 @@ describe('AudioService', () => {
   it('注音音檔播放完成回傳 ended', async () => {
     const { svc, el } = service(() => 'ended')
     expect(await svc.playSymbol('ㄌ')).toBe('ended')
-    expect(el.played).toEqual(['/audio/zhuyin/l.mp3'])
+    expect(el.played).toEqual(['/audio/zhuyin/F8.wav'])
   })
 
   it('注音音檔不存在：回傳 missing，不使用 TTS 念注音', async () => {
@@ -99,7 +99,7 @@ describe('AudioService', () => {
   })
 
   it('新的播放會中斷舊的播放（不會重複播放）', async () => {
-    const { svc } = service((src) => (src.includes('l.mp3') ? 'hang' : 'ended'), null, 1000)
+    const { svc } = service((src) => (src.includes('F8.wav') ? 'hang' : 'ended'), null, 1000)
     const first = svc.playSymbol('ㄌ')
     const second = svc.playSymbol('ㄇ')
     expect(await first).toBe('aborted')
