@@ -2,6 +2,7 @@
 /**
  * 大人設定（長按頂列齒輪 1 秒才會打開，避免小朋友誤觸）：
  * - 開放題目：跟著學校進度，點一個注音 = 開放到這一題（含）為止
+ * - 筆刷音效：塗色時的沙沙聲（預設關閉）
  * - 素材出處：CC BY 4.0 要求標示來源
  */
 import { computed } from 'vue'
@@ -14,9 +15,11 @@ const props = defineProps<{
   open: boolean
   worksheets: readonly ZhuyinWorksheet[]
   unlockedUntilId: string
+  brushSound: boolean
 }>()
 const emit = defineEmits<{
   (e: 'set-unlocked', id: string): void
+  (e: 'set-brush-sound', on: boolean): void
   (e: 'close'): void
 }>()
 
@@ -55,6 +58,24 @@ const summary = computed(() => {
             </button>
           </div>
           <p class="summary" role="status">{{ summary }}</p>
+        </section>
+
+        <section>
+          <h4>音效</h4>
+          <button
+            type="button"
+            role="switch"
+            class="switch-row"
+            :aria-checked="brushSound"
+            @click="emit('set-brush-sound', !brushSound)"
+          >
+            <AppIcon :name="brushSound ? 'brush-sound' : 'brush-sound-off'" :size="26" />
+            <span class="switch-label">
+              <span>筆刷音效</span>
+              <small>塗色時發出蠟筆的沙沙聲</small>
+            </span>
+            <span class="switch" :class="{ on: brushSound }" aria-hidden="true"><span class="knob" /></span>
+          </button>
         </section>
 
         <section>
@@ -146,6 +167,56 @@ h4 {
 .chip.last {
   background: var(--accent-soft);
   box-shadow: 0 3px 0 var(--ink);
+}
+.switch-row {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 4px;
+  font: inherit;
+  color: var(--ink);
+  text-align: left;
+  background: none;
+  border: none;
+}
+.switch-label {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  font-size: 17px;
+  font-weight: 700;
+}
+.switch-label small {
+  font-size: 14px;
+  font-weight: 400;
+  color: #6b6357;
+}
+.switch {
+  flex: 0 0 auto;
+  position: relative;
+  width: 56px;
+  height: 32px;
+  border: 3px solid var(--ink);
+  border-radius: 999px;
+  background: #e9e5dc;
+}
+.switch.on {
+  background: var(--accent-soft);
+}
+.knob {
+  position: absolute;
+  top: 3px;
+  left: 3px;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: #fff;
+  border: 2px solid var(--ink);
+  transition: transform 0.15s ease;
+}
+.switch.on .knob {
+  transform: translateX(24px);
 }
 ul {
   margin: 0;

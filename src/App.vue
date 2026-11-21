@@ -288,9 +288,7 @@ watch(ws.currentId, () => stage.value?.focus({ preventScroll: true }))
         :vertical="fit.landscape.value"
         :collapsible="fit.compact.value"
         :epaper="ws.epaper.value"
-        :brush-sound="ws.brushSound.value"
         @update:brush="ws.setBrush"
-        @toggle-brush-sound="ws.setBrushSound(!ws.brushSound.value)"
         @undo="ws.undoStroke"
         @clear="confirmKind = 'clear'"
         @restart="confirmKind = 'restart'"
@@ -310,7 +308,9 @@ watch(ws.currentId, () => stage.value?.focus({ preventScroll: true }))
       :open="showSettings"
       :worksheets="ws.worksheets"
       :unlocked-until-id="ws.unlockedUntilId.value"
+      :brush-sound="ws.brushSound.value"
       @set-unlocked="onSetUnlocked"
+      @set-brush-sound="ws.setBrushSound"
       @close="showSettings = false"
     />
     <ConfirmDialog
