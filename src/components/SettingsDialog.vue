@@ -53,7 +53,12 @@ const summary = computed(() => {
   <Transition name="fade">
     <div v-if="open" class="settings-layer" @pointerdown.self="emit('close')">
       <div class="settings-card" role="dialog" aria-modal="true" aria-labelledby="settings-title">
-        <h3 id="settings-title">大人設定</h3>
+        <header class="head">
+          <h3 id="settings-title">大人設定</h3>
+          <button type="button" class="close-btn" aria-label="關閉" title="關閉" @click="emit('close')">
+            <AppIcon name="close" :size="22" />
+          </button>
+        </header>
 
         <section>
           <h4>開放題目</h4>
@@ -88,7 +93,6 @@ const summary = computed(() => {
             <AppIcon name="epaper" :size="26" />
             <span class="switch-label">
               <span>彩色電子紙模式</span>
-              <small>顏色改深、改鮮豔，並關閉動畫，適合彩色電子紙</small>
             </span>
             <span class="switch" :class="{ on: epaper }" aria-hidden="true"><span class="knob" /></span>
           </button>
@@ -106,7 +110,6 @@ const summary = computed(() => {
             <AppIcon :name="brushSound ? 'brush-sound' : 'brush-sound-off'" :size="26" />
             <span class="switch-label">
               <span>筆刷音效</span>
-              <small>塗色時發出蠟筆的沙沙聲</small>
             </span>
             <span class="switch" :class="{ on: brushSound }" aria-hidden="true"><span class="knob" /></span>
           </button>
@@ -145,11 +148,6 @@ const summary = computed(() => {
             </li>
           </ul>
         </section>
-
-        <button type="button" class="btn" @click="emit('close')">
-          <AppIcon name="close" :size="22" />
-          <span>關閉</span>
-        </button>
       </div>
     </div>
   </Transition>
@@ -175,17 +173,43 @@ const summary = computed(() => {
   border-radius: 24px;
   box-shadow: 0 3px 0 var(--ink);
 }
+.head {
+  position: sticky;
+  top: -20px;
+  z-index: 1;
+  margin: -20px -20px 0;
+  padding: 16px 20px 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #fff;
+}
 h3 {
-  margin: 0 0 8px;
+  margin: 0;
   font-size: 22px;
-  text-align: center;
+}
+/* 右上角 X：44px 觸控面積 */
+.close-btn {
+  position: absolute;
+  top: 10px;
+  right: 12px;
+  width: 44px;
+  height: 44px;
+  display: grid;
+  place-items: center;
+  padding: 0;
+  color: var(--ink);
+  background: #fff;
+  border: 3px solid var(--ink);
+  border-radius: 50%;
+  box-shadow: 0 2px 0 var(--ink);
 }
 section {
-  padding: 12px 0;
+  padding: 8px 0;
   border-top: 2px dashed #d8d2c6;
 }
 h4 {
-  margin: 0 0 4px;
+  margin: 0 0 2px;
   font-size: 18px;
 }
 .hint,
@@ -231,7 +255,7 @@ h4 {
   display: flex;
   align-items: center;
   gap: 10px;
-  padding: 8px 4px;
+  padding: 2px 4px;
   font: inherit;
   color: var(--ink);
   text-align: left;
@@ -240,15 +264,8 @@ h4 {
 }
 .switch-label {
   flex: 1;
-  display: flex;
-  flex-direction: column;
   font-size: 17px;
   font-weight: 700;
-}
-.switch-label small {
-  font-size: 14px;
-  font-weight: 400;
-  color: #6b6357;
 }
 .switch {
   flex: 0 0 auto;
