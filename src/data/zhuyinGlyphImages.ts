@@ -3,8 +3,7 @@
  * 有列在這裡的注音改用圖片；沒有的仍使用骨架路徑畫的泡泡字。
  * 圖片位置會依不透明範圍自動置中，不需要手動對位（見 canvas/glyphImage.ts）。
  *
- * 注意：只列出已換成新風格、且檔名與內容一致的圖。
- * 資料夾裡 ㄝ ㄞ ㄟ ㄠ ㄡ ㄢ ㄣ ㄤ ㄥ ㄦ 還是舊圖，有些檔名與實際字形不符，換成新圖後再加進來。
+ * 37 個注音都已換成新風格的圖（ㄢ.png 原本是棋盤格背景，已轉成透明；原檔在 zhuyinGlyphs/backup/）。
  */
 import b from './zhuyinGlyphs/ㄅ.png'
 import p from './zhuyinGlyphs/ㄆ.png'
@@ -30,6 +29,16 @@ import s from './zhuyinGlyphs/ㄙ.png'
 import a from './zhuyinGlyphs/ㄚ.png'
 import o from './zhuyinGlyphs/ㄛ.png'
 import e from './zhuyinGlyphs/ㄜ.png'
+import eh from './zhuyinGlyphs/ㄝ.png'
+import ai from './zhuyinGlyphs/ㄞ.png'
+import ei from './zhuyinGlyphs/ㄟ.png'
+import ao from './zhuyinGlyphs/ㄠ.png'
+import ou from './zhuyinGlyphs/ㄡ.png'
+import an from './zhuyinGlyphs/ㄢ.png'
+import en from './zhuyinGlyphs/ㄣ.png'
+import ang from './zhuyinGlyphs/ㄤ.png'
+import eng from './zhuyinGlyphs/ㄥ.png'
+import er from './zhuyinGlyphs/ㄦ.png'
 import i from './zhuyinGlyphs/ㄧ.png'
 import u from './zhuyinGlyphs/ㄨ.png'
 import yu from './zhuyinGlyphs/ㄩ.png'
@@ -59,6 +68,16 @@ export const GLYPH_IMAGE_URLS: Readonly<Record<string, string>> = {
   'ㄚ': a,
   'ㄛ': o,
   'ㄜ': e,
+  'ㄝ': eh,
+  'ㄞ': ai,
+  'ㄟ': ei,
+  'ㄠ': ao,
+  'ㄡ': ou,
+  'ㄢ': an,
+  'ㄣ': en,
+  'ㄤ': ang,
+  'ㄥ': eng,
+  'ㄦ': er,
   'ㄧ': i,
   'ㄨ': u,
   'ㄩ': yu,
