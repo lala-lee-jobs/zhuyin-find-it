@@ -154,19 +154,21 @@ export class CircleInteractionController {
   }
 
   /**
-   * 使用者按下關閉。
-   * - 發音階段關閉：不判斷、不計分（必須先聽完發音才有結果）。
-   * - 回饋階段關閉：結果已記錄，直接收起；若剛好完成全部，仍會觸發完成獎勵。
+   * 使用者按下關閉（右上角 X 或點畫面任何地方）。
+   * - 發音階段關閉：停止發音，但仍然判斷正誤並計分（不播回饋語音），直接收起。
+   * - 回饋階段關閉：結果已記錄，直接收起。
+   * 兩種情況若剛好完成全部，都會觸發完成獎勵。
    */
   close(): void {
     if (this.phase === 'idle') return
     const wasPronouncing = this.phase === 'pronouncing'
+    const circleId = this.popup?.circleId
     this.invalidate()
-    if (wasPronouncing) {
+    if (wasPronouncing && circleId) {
       this.pendingCompletion = false
-      this.popup = null
-      this.setPhase('idle')
-      return
+      if (this.options.evaluate(circleId) === 'correct') {
+        this.pendingCompletion = this.options.onCorrect(circleId).completed
+      }
     }
     this.finish()
   }

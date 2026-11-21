@@ -173,15 +173,36 @@ describe('19.2 語音與 Popup', () => {
     expect(t.fake.log).toContain('stop')
   })
 
-  it('發音中按關閉：不判斷、不計分', async () => {
+  it('發音中按關閉：停止發音，仍判斷並計分，不播回饋語音', async () => {
     const t = setup('correct', { symbol: 'manual' })
     const pending = t.controller.tap({ id: 'c1', symbol: 'ㄌ' })
     await sleep(5)
     t.controller.close()
     await pending
-    expect(t.correct).toHaveLength(0)
-    expect(t.fake.log).not.toContain('evaluate')
+    expect(t.correct).toEqual(['c1'])
+    expect(t.fake.log).toContain('stop')
+    expect(t.fake.log.some((x) => x.startsWith('feedback'))).toBe(false)
     expect(t.controller.state).toBe('idle')
+  })
+
+  it('發音中按關閉：答錯不計分', async () => {
+    const t = setup('wrong', { symbol: 'manual' })
+    const pending = t.controller.tap({ id: 'c1', symbol: 'ㄇ' })
+    await sleep(5)
+    t.controller.close()
+    await pending
+    expect(t.correct).toHaveLength(0)
+    expect(t.controller.state).toBe('idle')
+  })
+
+  it('發音中按關閉最後一個正確圓圈：仍觸發完成獎勵', async () => {
+    const t = setup('correct', { symbol: 'manual' })
+    t.setCompleteOnCorrect(true)
+    const pending = t.controller.tap({ id: 'last', symbol: 'ㄌ' })
+    await sleep(5)
+    t.controller.close()
+    await pending
+    expect(t.completeCalls()).toBe(1)
   })
 
   it('完成最後一個時，Popup 關閉後才觸發完成獎勵', async () => {
