@@ -13,6 +13,7 @@ import WorksheetSelector from './components/WorksheetSelector.vue'
 import AnswerPopup from './components/AnswerPopup.vue'
 import CompletionPopup from './components/CompletionPopup.vue'
 import ConfirmDialog from './components/ConfirmDialog.vue'
+import CreditsDialog from './components/CreditsDialog.vue'
 import AppIcon from './components/AppIcon.vue'
 import { displayColor } from './core/palette'
 
@@ -136,6 +137,9 @@ watchEffect(() => {
   if (ws.epaper.value) document.documentElement.dataset.display = 'epaper'
   else delete document.documentElement.dataset.display
 })
+// ───────── 關於（素材出處） ─────────
+const showCredits = ref(false)
+
 function toggleEpaper(): void {
   ws.setEpaper(!ws.epaper.value)
 }
@@ -158,6 +162,9 @@ watch(ws.currentId, () => stage.value?.focus({ preventScroll: true }))
         @next="goNext()"
       />
       <div class="top-actions">
+        <button type="button" class="round-btn" aria-label="關於：素材出處" title="素材出處" @click="showCredits = true">
+          <AppIcon name="info" />
+        </button>
         <button
           type="button"
           class="round-btn epaper-btn"
@@ -241,6 +248,7 @@ watch(ws.currentId, () => stage.value?.focus({ preventScroll: true }))
       @replay="onReplay"
       @next="goNext(true)"
     />
+    <CreditsDialog :open="showCredits" @close="showCredits = false" />
     <ConfirmDialog
       :open="confirmKind !== null"
       :title="confirmText.title"

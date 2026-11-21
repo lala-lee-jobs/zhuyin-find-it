@@ -67,7 +67,7 @@ src/
 └── types/worksheet.ts
 public/
 ├── illustrations/*.svg          32 張線稿插畫（可直接用同檔名替換）
-└── audio/                       音檔放這裡（目前是空的，見 audio/README.md）
+└── audio/                       音檔（注音 F1–F37.wav，見 audio/README.md）
 tests/                           Vitest
 ```
 
@@ -102,7 +102,7 @@ tests/                           Vitest
 
 ## 尚缺的資源
 
-- **全部音檔**：8 個注音 + 3 個鼓勵語（見 `public/audio/README.md`）。缺檔時不會假裝播放，也不會用 TTS 念注音。
+- **鼓勵語音檔**：3 個鼓勵語（見 `public/audio/README.md`）。注音 37 個音檔已放入。缺檔時不會假裝播放，也不會用 TTS 念注音。
 - **正式插畫**：`public/illustrations/` 的 32 張是風格一致的 SVG 線稿 placeholder，用同檔名替換即可。
 - **圓體字型**：標題與 UI 依序使用 Yuanti TC、jf 粉圓、PingFang TC、Noto Sans TC。若要每台裝置都一致，可在 `index.html` 加入自架的粉圓字型（OFL 授權）。注音本身不依賴字型。
 
@@ -122,3 +122,13 @@ tests/                           Vitest
 4. **A4 列印**：`renderBase` + `renderCircles` 已是純函式，可在 2480×3508 的離屏 Canvas 上以 `k = 3.1` 輸出。
 5. **PWA 離線**：加 `vite-plugin-pwa`，預快取 `illustrations/` 與 `audio/`。
 6. **學習紀錄**：`WorksheetProgress` 可加上完成時間；`StorageService.migrate` 已預留版本遷移。
+
+## 素材來源與授權
+
+注音發音音檔（`public/audio/zhuyin/F1.wav`–`F37.wav`）取自教育部《注音符號手冊》：
+https://language.moe.gov.tw/001/Upload/files/site_content/M0001/juyin/index.html
+
+- 著作人：中華民國教育部
+- 授權：手冊內含的注音符號動畫 XML、SVG 檔與相關音檔，採「[創用CC 姓名標示 4.0 國際版本](https://creativecommons.org/licenses/by/4.0/deed.zh_TW)」（CC BY 4.0）授權提供；利用這些檔案視為符合政府資料開放授權條款。
+- 手冊本身（文字與版面）是「創用CC 姓名標示–禁止改作 3.0 臺灣」授權，本專案沒有使用手冊內容，只使用另外提供的音檔。
+- 依 CC BY 4.0，使用音檔時要保留上面的來源與授權標示；如果之後剪輯、轉檔或調整音量，要再註明「已修改」。

@@ -19,6 +19,7 @@ withDefaults(
       | 'epaper'
       | 'brush-sound'
       | 'brush-sound-off'
+      | 'info'
     size?: number
   }>(),
   { size: 28 },
@@ -96,6 +97,11 @@ withDefaults(
         <path d="M24.5 9a10 10 0 0 1 0 14" />
       </template>
       <path v-else d="M20 10l9 12" />
+    </template>
+    <template v-else-if="name === 'info'">
+      <circle cx="16" cy="16" r="12" fill="#fff" />
+      <path d="M16 14.5v8" />
+      <circle cx="16" cy="10" r="1.6" fill="currentColor" stroke="none" />
     </template>
     <template v-else-if="name === 'palette'">
       <path
