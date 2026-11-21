@@ -1,5 +1,5 @@
 <script setup lang="ts">
-/** 學習單底部進度：星星（給還不識字的孩子）＋短文字（給陪伴的大人） */
+/** 學習單標題區右半部的進度：星星（給還不識字的孩子）＋短文字（給陪伴的大人） */
 import { computed } from 'vue'
 import { PROGRESS_BAND, WORKSHEET_HEIGHT, WORKSHEET_WIDTH } from '../canvas/layout'
 import AppIcon from './AppIcon.vue'
@@ -11,7 +11,7 @@ const style = computed(() => ({
   top: `${(PROGRESS_BAND.y / WORKSHEET_HEIGHT) * 100}%`,
   width: `${(PROGRESS_BAND.w / WORKSHEET_WIDTH) * 100}%`,
   height: `${(PROGRESS_BAND.h / WORKSHEET_HEIGHT) * 100}%`,
-  fontSize: `${Math.max(11, 24 * props.scale)}px`,
+  fontSize: `${Math.max(10, 28 * props.scale)}px`,
 }))
 const done = computed(() => props.total > 0 && props.found >= props.total)
 </script>
@@ -25,7 +25,7 @@ const done = computed(() => props.total > 0 && props.found >= props.total)
         name="star"
         class="star"
         :class="{ on: i <= found }"
-        :size="Math.max(12, 30 * scale)"
+        :size="Math.max(10, 36 * scale)"
       />
     </div>
     <div class="text">

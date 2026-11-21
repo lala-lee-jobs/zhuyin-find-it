@@ -1,8 +1,9 @@
-/** Layer 1：紙張、外框、雲朵標題、插畫、裝飾 */
+/** Layer 1：紙張、外框、標題、插畫、裝飾 */
 import type { ZhuyinWorksheet } from '../types/worksheet'
 import { hashString, mulberry32 } from '../core/random'
 import {
   FONT_STACK,
+  GLYPH_BOX,
   HEADER,
   ILLUSTRATION_SLOTS,
   INK,
@@ -11,7 +12,6 @@ import {
 } from './layout'
 import {
   drawBush,
-  drawCloud,
   drawDashedBorder,
   drawFlower,
   drawHeart,
@@ -44,11 +44,9 @@ export function renderBase(ctx: Ctx2D, worksheet: ZhuyinWorksheet, opts: BaseRen
   drawDashedBorder(ctx)
 
   const rand = mulberry32(hashString(`${worksheet.id}:decor`))
-  drawHeaderDecorations(ctx, rand)
   drawTitle(ctx, worksheet)
   drawIllustrations(ctx, worksheet, opts)
   drawBoardDecorations(ctx, rand)
-  drawFooterDecorations(ctx, rand)
 
   ctx.restore()
 }
@@ -61,8 +59,7 @@ function drawTitle(ctx: Ctx2D, worksheet: ZhuyinWorksheet): void {
   ctx.textAlign = 'left'
   const textWidth = Math.min(ctx.measureText(label).width, HEADER.titleFontSize * 3.4)
   const gap = 14
-  const total = textWidth + gap + HEADER.titleGlyphSize
-  const startX = HEADER.titleCenterX - total / 2
+  const startX = HEADER.titleLeftX
   ctx.fillStyle = INK
   ctx.fillText(label, startX, HEADER.titleBaselineY, HEADER.titleFontSize * 3.4)
   ctx.restore()
@@ -139,16 +136,6 @@ const smallDecos: Deco[] = [
   (c, x, y, s) => drawFlower(c, x, y, s, 2.4),
 ]
 
-function drawHeaderDecorations(ctx: Ctx2D, rand: () => number): void {
-  drawCloud(ctx, 78, 54, 104, 48, 3)
-  drawCloud(ctx, 724, 50, 100, 46, 3)
-  pick(rand, smallDecos)(ctx, 150, 118, 12)
-  pick(rand, smallDecos)(ctx, 46, 120, 11)
-  pick(rand, smallDecos)(ctx, 684, 122, 12)
-  pick(rand, smallDecos)(ctx, 760, 116, 11)
-  drawStar(ctx, 140, 30, 9, 2.4)
-}
-
 function drawBoardDecorations(ctx: Ctx2D, rand: () => number): void {
   // 插畫與圓圈之間的草叢與小花
   for (const x of [40, 208, 400, 592, 760]) drawBush(ctx, x, 412, 54, 2.6)
@@ -159,18 +146,11 @@ function drawBoardDecorations(ctx: Ctx2D, rand: () => number): void {
   for (const x of [321, 637]) pick(rand, smallDecos)(ctx, x, 436, 9)
 
   // 中央大注音旁的強調線
-  drawSparkLines(ctx, 262, 566, (-3 * Math.PI) / 4, 16)
-  drawSparkLines(ctx, 540, 566, -Math.PI / 4, 16)
-  drawSparkLines(ctx, 540, 858, Math.PI / 4, 14)
+  const g = GLYPH_BOX
+  drawSparkLines(ctx, g.x + 12, g.y + 6, (-3 * Math.PI) / 4, 16)
+  drawSparkLines(ctx, g.x + 290, g.y + 6, -Math.PI / 4, 16)
+  drawSparkLines(ctx, g.x + 290, g.y + 298, Math.PI / 4, 14)
 
   // 下排圓圈之間
-  for (const x of [163, 479]) pick(rand, smallDecos)(ctx, x, 900, 9)
-  for (const x of [321, 637]) pick(rand, smallDecos)(ctx, x, 986, 8)
-}
-
-function drawFooterDecorations(ctx: Ctx2D, rand: () => number): void {
-  pick(rand, smallDecos)(ctx, 70, 1050, 14)
-  pick(rand, smallDecos)(ctx, 140, 1062, 10)
-  pick(rand, smallDecos)(ctx, 660, 1062, 10)
-  pick(rand, smallDecos)(ctx, 730, 1050, 14)
+  for (const x of [163, 321, 479, 637]) pick(rand, smallDecos)(ctx, x, 1028, 8)
 }

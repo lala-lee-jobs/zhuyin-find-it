@@ -9,25 +9,25 @@ export const WORKSHEET_HEIGHT = 1100
 export const REGIONS = {
   header: { top: 0, bottom: 150 },
   illustrations: { top: 150, bottom: 420 },
-  board: { top: 420, bottom: 1000 },
-  footer: { top: 1000, bottom: 1100 },
+  /** 圓圈區一路延伸到外框內側（底部不再保留進度列） */
+  board: { top: 420, bottom: 1084 },
 } as const
 
 export const BORDER_INSET = 12
 
-/** 標題雲朵 */
+/** 標題區：左半部放標題＋喇叭，右半部放進度（見 PROGRESS_BAND） */
 export const HEADER = {
-  /** 標題文字＋注音的中心點（喇叭在右側） */
-  titleCenterX: 368,
+  /** 標題文字的左緣 */
+  titleLeftX: 40,
   titleBaselineY: 102,
-  titleFontSize: 62,
-  titleGlyphSize: 66,
-  /** 喇叭按鈕（HTML overlay） */
-  speaker: { x: 580, y: 80, size: 84 },
+  titleFontSize: 58,
+  titleGlyphSize: 62,
+  /** 喇叭按鈕（HTML overlay，x/y 為中心點） */
+  speaker: { x: 344, y: 80, size: 76 },
 } as const
 
 /** 中央大注音的外框方塊（邏輯座標）。注音骨架 0–100 對應到這個方塊。 */
-export const GLYPH_BOX = { x: 250, y: 560, size: 300 } as const
+export const GLYPH_BOX = { x: 250, y: 604, size: 300 } as const
 
 /**
  * 泡泡字樣式（邏輯座標單位）
@@ -44,7 +44,7 @@ export const CIRCLE_RADIUS = 46
 export const CIRCLE_JITTER = 4
 
 /**
- * 22 個圓圈位置（與參考學習單相同：上 5、中間左右各 2 × 3 列、下 5），
+ * 26 個圓圈位置：上 5、中間左右各 2 × 4 列、下 5，
  * 每題再以 seeded random 做 ±4 的微調，讓排版自然但不重疊。
  */
 export const CIRCLE_SLOTS: ReadonlyArray<{ x: number; y: number; zone: 'top' | 'left' | 'right' | 'bottom' }> = [
@@ -54,26 +54,31 @@ export const CIRCLE_SLOTS: ReadonlyArray<{ x: number; y: number; zone: 'top' | '
   { x: 558, y: 478, zone: 'top' },
   { x: 715, y: 478, zone: 'top' },
 
-  { x: 75, y: 594, zone: 'left' },
-  { x: 185, y: 594, zone: 'left' },
-  { x: 615, y: 594, zone: 'right' },
-  { x: 725, y: 594, zone: 'right' },
+  { x: 75, y: 588, zone: 'left' },
+  { x: 185, y: 588, zone: 'left' },
+  { x: 615, y: 588, zone: 'right' },
+  { x: 725, y: 588, zone: 'right' },
 
-  { x: 75, y: 710, zone: 'left' },
-  { x: 185, y: 710, zone: 'left' },
-  { x: 615, y: 710, zone: 'right' },
-  { x: 725, y: 710, zone: 'right' },
+  { x: 75, y: 698, zone: 'left' },
+  { x: 185, y: 698, zone: 'left' },
+  { x: 615, y: 698, zone: 'right' },
+  { x: 725, y: 698, zone: 'right' },
 
-  { x: 75, y: 826, zone: 'left' },
-  { x: 185, y: 826, zone: 'left' },
-  { x: 615, y: 826, zone: 'right' },
-  { x: 725, y: 826, zone: 'right' },
+  { x: 75, y: 808, zone: 'left' },
+  { x: 185, y: 808, zone: 'left' },
+  { x: 615, y: 808, zone: 'right' },
+  { x: 725, y: 808, zone: 'right' },
 
-  { x: 85, y: 942, zone: 'bottom' },
-  { x: 242, y: 942, zone: 'bottom' },
-  { x: 400, y: 942, zone: 'bottom' },
-  { x: 558, y: 942, zone: 'bottom' },
-  { x: 715, y: 942, zone: 'bottom' },
+  { x: 75, y: 918, zone: 'left' },
+  { x: 185, y: 918, zone: 'left' },
+  { x: 615, y: 918, zone: 'right' },
+  { x: 725, y: 918, zone: 'right' },
+
+  { x: 85, y: 1028, zone: 'bottom' },
+  { x: 242, y: 1028, zone: 'bottom' },
+  { x: 400, y: 1028, zone: 'bottom' },
+  { x: 558, y: 1028, zone: 'bottom' },
+  { x: 715, y: 1028, zone: 'bottom' },
 ]
 
 /** 四個插畫位置 */
@@ -85,8 +90,8 @@ export const ILLUSTRATION_SLOTS = {
   labelFontSize: 30,
 } as const
 
-/** 底部進度列（HTML overlay） */
-export const PROGRESS_BAND = { x: 190, y: 1010, w: 420, h: 70 } as const
+/** 進度（HTML overlay），位於標題區右半部 */
+export const PROGRESS_BAND = { x: 420, y: 34, w: 350, h: 92 } as const
 
 export const INK = '#1f1f1f'
 
