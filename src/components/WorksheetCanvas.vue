@@ -10,9 +10,9 @@
  *   2. 命中中央注音 → 開始畫筆（setPointerCapture，之後移到圓圈上也不會答題）
  *   3. 其他區域 → 不做任何事
  */
-import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue'
+import { computed, onBeforeUnmount, onMounted, ref, shallowRef, watch } from 'vue'
 import type { BrushSettings, DrawingPoint, DrawingStroke, ZhuyinCircle, ZhuyinWorksheet } from '../types/worksheet'
-import { GLYPH_BOX } from '../canvas/layout'
+import { GLYPH_BOX, GLYPH_IMAGE_AREA } from '../canvas/layout'
 import { clientToLogical, computeBackingSize } from '../canvas/coordinateUtils'
 import { findCircleAt, isPointInCircle } from '../canvas/hitTesting'
 import { isPointInGlyph, layoutGlyph } from '../canvas/glyphGeometry'
@@ -21,6 +21,16 @@ import { renderCircles } from '../canvas/renderCircles'
 import { lookupImage } from '../canvas/imageCache'
 import { assetUrl } from '../utils/assetUrl'
 import { useCanvasDrawing } from '../composables/useCanvasDrawing'
+import { defaultCanvasFactory } from '../canvas/drawingMask'
+import {
+  isPointInGlyphImage,
+  placeGlyphImage,
+  processGlyphImage,
+  type PlacedGlyphImage,
+  type ProcessedGlyphImage,
+} from '../canvas/glyphImage'
+import { getGlyphImageUrl } from '../data/zhuyinGlyphImages'
+import { loadImage } from '../canvas/imageCache'
 
 const props = defineProps<{
   worksheet: ZhuyinWorksheet
@@ -111,6 +121,45 @@ const drawing = useCanvasDrawing({
   requestRender: () => requestRender('drawing'),
 })
 
+// ───────── 中央注音圖片（PNG） ─────────
+/** 處理過的圖片快取（每個網址只處理一次）；null 代表處理失敗、改用泡泡字 */
+const processedImages = new Map<string, ProcessedGlyphImage | null>()
+const glyphImage = shallowRef<PlacedGlyphImage | null>(null)
+
+function placeImage(image: ProcessedGlyphImage): PlacedGlyphImage {
+  return { image, rect: placeGlyphImage(image.bounds, image.width, image.height, GLYPH_IMAGE_AREA) }
+}
+
+/** 換題時呼叫：有圖片就載入；載入前、失敗時都顯示原本的泡泡字 */
+function loadGlyphImage(): void {
+  glyphImage.value = null
+  const url = getGlyphImageUrl(props.worksheet.targetSymbol)
+  if (!url) return
+  const id = props.worksheet.id
+  const ready = (): void => {
+    if (props.worksheet.id !== id) return
+    if (!processedImages.has(url)) {
+      const img = lookupImage(url)
+      let processed: ProcessedGlyphImage | null = null
+      if (img && img !== 'error') {
+        try {
+          processed = processGlyphImage(img, defaultCanvasFactory)
+        } catch {
+          processed = null
+        }
+      }
+      processedImages.set(url, processed)
+    }
+    const processed = processedImages.get(url)
+    if (processed) {
+      glyphImage.value = placeImage(processed)
+      applySize()
+    }
+  }
+  if (processedImages.has(url)) ready()
+  else loadImage(url, ready)
+}
+
 // ───────── 尺寸 ─────────
 function applySize(): void {
   const { width, height, k } = backing.value
@@ -121,13 +170,14 @@ function applySize(): void {
   }
   // 以向量筆畫重建：resize 後塗色不會遺失
   drawing.setEpaper(props.epaper)
-  drawing.configure(width, height, k, glyphLayout.value)
+  drawing.configure(width, height, k, glyphLayout.value, glyphImage.value)
   drawing.sync(props.strokes)
   requestRender('all')
 }
 
 onMounted(() => {
   applySize()
+  loadGlyphImage()
   // 系統字型載入完成後重繪標題文字
   if (typeof document !== 'undefined' && document.fonts?.ready) {
     document.fonts.ready.then(() => requestRender('base')).catch(() => undefined)
@@ -148,6 +198,7 @@ watch(
     pendingTap = null
     fillAnimations.clear()
     applySize()
+    loadGlyphImage()
   },
 )
 
@@ -224,7 +275,8 @@ function onPointerDown(e: PointerEvent): void {
 
   // 2. 中央注音 → 畫筆
   const layout = glyphLayout.value
-  if (layout && isPointInGlyph(p, layout, 6)) {
+  const onGlyph = glyphImage.value ? isPointInGlyphImage(p, glyphImage.value, 6) : !!layout && isPointInGlyph(p, layout, 6)
+  if (onGlyph) {
     e.preventDefault()
     try {
       root.value?.setPointerCapture(e.pointerId)

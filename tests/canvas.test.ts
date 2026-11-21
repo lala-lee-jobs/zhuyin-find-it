@@ -18,6 +18,7 @@ import { findCircleAt, isPointInCircle } from '../src/canvas/hitTesting'
 import { WORKSHEETS, findWorksheet } from '../src/data/worksheets'
 import type { DrawingStroke } from '../src/types/worksheet'
 import { displayColor } from '../src/core/palette'
+import type { ProcessedGlyphImage } from '../src/canvas/glyphImage'
 
 // ───────── 假 Canvas ─────────
 interface Op {
@@ -199,6 +200,32 @@ describe('19.3 Canvas 合成管線', () => {
     log.length = 0
     surface.setEpaper(true) // 沒變就不重畫
     expect(paintStyles()).toEqual([])
+  })
+
+  it('有注音圖片時：先畫原圖、遮罩改用圖片、最後疊上去白的黑框與筆順', () => {
+    const log: Op[] = []
+    const { factory } = createFakeFactory(log)
+    const surface = new GlyphPaintSurface(factory)
+    const image = {
+      source: { name: 'glyphSource' },
+      overlay: { name: 'glyphOverlay' },
+      width: 100,
+      height: 100,
+      bounds: { x: 0, y: 0, w: 100, h: 100 },
+      alpha: new Uint8ClampedArray(0),
+    } as unknown as ProcessedGlyphImage
+    surface.configure(800, 1100, 1, layout, { image, rect: { x: 250, y: 470, w: 300, h: 300 } })
+    surface.syncStrokes([brush('a')])
+
+    // 遮罩畫圖片、外框圖層畫去白後的 overlay，不再畫泡泡字的線條
+    expect(log.filter((o) => o.canvas === 'mask' && o.op === 'drawImage').map((o) => o.arg)).toEqual(['glyphSource'])
+    expect(log.filter((o) => o.canvas === 'ring' && o.op === 'drawImage').map((o) => o.arg)).toEqual(['glyphOverlay'])
+    expect(log.some((o) => (o.canvas === 'mask' || o.canvas === 'ring') && o.op === 'stroke')).toBe(false)
+
+    log.length = 0
+    surface.compose(createTarget(log))
+    const screen = log.filter((o) => o.canvas === 'screen' && o.op === 'drawImage').map((o) => o.arg)
+    expect(screen).toEqual(['glyphSource', 'scratch', 'ring'])
   })
 
   it('Canvas resize 後筆畫仍存在（以向量資料重畫）', () => {

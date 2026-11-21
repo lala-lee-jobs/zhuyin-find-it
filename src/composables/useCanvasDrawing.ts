@@ -7,6 +7,7 @@ import type { BrushSettings, DrawingPoint, DrawingStroke } from '../types/worksh
 import { appendPoint, createStroke } from '../core/strokes'
 import { GlyphPaintSurface, defaultCanvasFactory, type CanvasFactory } from '../canvas/drawingMask'
 import type { GlyphLayout } from '../canvas/glyphGeometry'
+import type { PlacedGlyphImage } from '../canvas/glyphImage'
 import type { Ctx2D } from '../canvas/renderDecorations'
 
 export interface UseCanvasDrawingOptions {
@@ -55,8 +56,14 @@ export function useCanvasDrawing(options: UseCanvasDrawingOptions) {
     options.requestRender()
   }
 
-  function configure(width: number, height: number, k: number, layout: GlyphLayout | null): void {
-    surface.configure(width, height, k, layout)
+  function configure(
+    width: number,
+    height: number,
+    k: number,
+    layout: GlyphLayout | null,
+    image: PlacedGlyphImage | null = null,
+  ): void {
+    surface.configure(width, height, k, layout, image)
   }
 
   function setEpaper(epaper: boolean): void {

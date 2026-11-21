@@ -8,6 +8,9 @@
  *
  * 每一幀：scratch = paint (+ 正在畫的筆畫) → destination-in mask → 畫到螢幕 → 最後畫 ring。
  *
+ * 有注音圖片（PNG）時：mask 改用圖片的不透明區、ring 改放去白後的黑框與筆順提示，
+ * 並在塗色之前先畫原圖（見 glyphImage.ts）。
+ *
  * 選擇 destination-in + 離屏遮罩的原因：
  * - 遮罩形狀可以是任何點陣，與 clip() 相比在各瀏覽器表現最一致、邊緣有反鋸齒。
  * - 橡皮擦只在 paint 上做 destination-out，永遠碰不到黑色外框。
@@ -16,6 +19,7 @@
 import type { DrawingStroke } from '../types/worksheet'
 import type { GlyphLayout } from './glyphGeometry'
 import { drawGlyphMask, drawGlyphRing } from './renderZhuyin'
+import type { PlacedGlyphImage } from './glyphImage'
 import type { Ctx2D } from './renderDecorations'
 import { displayColor } from '../core/palette'
 
@@ -85,6 +89,7 @@ export class GlyphPaintSurface {
   private drawnIds: string[] = []
   private strokes: readonly DrawingStroke[] = []
   private epaper = false
+  private image: PlacedGlyphImage | null = null
 
   constructor(private readonly factory: CanvasFactory = defaultCanvasFactory) {}
 
@@ -97,12 +102,19 @@ export class GlyphPaintSurface {
   }
 
   /** 尺寸或注音改變：重建遮罩與外框，並用向量資料重畫全部筆畫（resize 不會遺失塗色） */
-  configure(width: number, height: number, k: number, layout: GlyphLayout | null): void {
+  configure(
+    width: number,
+    height: number,
+    k: number,
+    layout: GlyphLayout | null,
+    image: PlacedGlyphImage | null = null,
+  ): void {
     const sizeChanged = width !== this.width || height !== this.height
     this.width = width
     this.height = height
     this.k = k
     this.layout = layout
+    this.image = image
     if (sizeChanged || !this.paint) {
       this.paint = this.factory(width, height)
       this.mask = this.factory(width, height)
@@ -144,7 +156,7 @@ export class GlyphPaintSurface {
     target.setTransform(1, 0, 0, 1, 0, 0)
     target.globalCompositeOperation = 'source-over'
     target.clearRect(0, 0, this.width, this.height)
-    if (!this.paint || !this.mask || !this.ring || !this.scratch || !this.layout) {
+    if (!this.paint || !this.mask || !this.ring || !this.scratch || (!this.layout && !this.image)) {
       target.restore()
       return
     }
@@ -162,6 +174,12 @@ export class GlyphPaintSurface {
     s.drawImage(this.mask, 0, 0)
     s.restore()
 
+    if (this.image) {
+      const { image, rect } = this.image
+      target.setTransform(this.k, 0, 0, this.k, 0, 0)
+      target.drawImage(image.source, rect.x, rect.y, rect.w, rect.h)
+      target.setTransform(1, 0, 0, 1, 0, 0)
+    }
     target.drawImage(this.scratch, 0, 0)
     target.drawImage(this.ring, 0, 0)
     target.restore()
@@ -173,6 +191,20 @@ export class GlyphPaintSurface {
       const ctx = getCtx(canvas)
       ctx.setTransform(1, 0, 0, 1, 0, 0)
       ctx.clearRect(0, 0, this.width, this.height)
+    }
+    if (this.image) {
+      const { image, rect } = this.image
+      for (const [canvas, src] of [
+        [this.mask, image.source],
+        [this.ring, image.overlay],
+      ] as const) {
+        const ctx = getCtx(canvas)
+        ctx.save()
+        ctx.setTransform(this.k, 0, 0, this.k, 0, 0)
+        ctx.drawImage(src, rect.x, rect.y, rect.w, rect.h)
+        ctx.restore()
+      }
+      return
     }
     if (!this.layout) return
     const m = getCtx(this.mask)

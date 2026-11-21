@@ -29,6 +29,12 @@ export const HEADER = {
 export const GLYPH_BOX = { x: 250, y: 470, size: 300 } as const
 
 /**
+ * 中央注音改用 PNG 圖片時可使用的範圍（中心點與最大寬高）。
+ * 寬度受左右兩側圓圈限制（內緣約 231–569），高度受上下整排圓圈限制（約 373–866）。
+ */
+export const GLYPH_IMAGE_AREA = { cx: 400, cy: 620, maxW: 326, maxH: 420 } as const
+
+/**
  * 泡泡字樣式（邏輯座標單位）
  * outerWidth：含黑框的總寬；ringWidth：黑框粗細；
  * 可塗色區 = outerWidth - 2 * ringWidth；遮罩比可塗色區略寬，讓顏色延伸到黑框底下，不留白縫。
