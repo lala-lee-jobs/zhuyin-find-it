@@ -13,15 +13,15 @@ export interface WorksheetSeed {
   correctCount: number
   /** 干擾注音（形狀相近者優先） */
   distractors: string[]
-  /** [插畫檔名, 詞彙] */
-  illustrations: Array<[string, string]>
+  /** [插畫檔名, 詞彙]（目前畫面不顯示主題插畫，可以不填） */
+  illustrations?: Array<[string, string]>
 }
 
 /**
  * 題庫種子。新增注音時：
- * 1. 在這裡加一筆種子
- * 2. 在 data/zhuyinGlyphs.ts 加入骨架路徑
- * 3. 把插畫放進 public/illustrations/、音檔放進 public/audio/zhuyin/
+ * 1. 在這裡加一筆種子（預設不開放，大人在「大人設定」開放）
+ * 2. 把新風格的注音圖片放進 data/zhuyinGlyphs/，並加到 data/zhuyinGlyphImages.ts
+ * 3. 音檔放在 public/audio/zhuyin/（F1–F37 已全部放好）
  */
 export const WORKSHEET_SEEDS: readonly WorksheetSeed[] = [
   {
@@ -180,6 +180,11 @@ export const WORKSHEET_SEEDS: readonly WorksheetSeed[] = [
       ['pencil', '鉛筆'],
     ],
   },
+  { id: 'zhuyin-x', target: 'ㄒ', correctCount: 9, distractors: ['ㄐ', 'ㄑ', 'ㄊ', 'ㄏ'] },
+  { id: 'zhuyin-zh', target: 'ㄓ', correctCount: 9, distractors: ['ㄔ', 'ㄕ', 'ㄖ', 'ㄗ'] },
+  { id: 'zhuyin-ch', target: 'ㄔ', correctCount: 8, distractors: ['ㄓ', 'ㄕ', 'ㄘ', 'ㄑ'] },
+  { id: 'zhuyin-sh', target: 'ㄕ', correctCount: 10, distractors: ['ㄓ', 'ㄔ', 'ㄙ', 'ㄏ'] },
+  { id: 'zhuyin-r', target: 'ㄖ', correctCount: 9, distractors: ['ㄇ', 'ㄓ', 'ㄕ', 'ㄈ'] },
 ]
 
 /** Phase 1 MVP 是「找找看 ㄌ」，第一次開啟時顯示這題 */
@@ -227,7 +232,7 @@ export function buildWorksheet(seed: WorksheetSeed): ZhuyinWorksheet {
     }
   })
 
-  const illustrations: IllustrationItem[] = seed.illustrations.map(([key, word]) => ({
+  const illustrations: IllustrationItem[] = (seed.illustrations ?? []).map(([key, word]) => ({
     id: `${seed.id}-${key}`,
     word,
     imageUrl: `illustrations/${key}.svg`,

@@ -5,9 +5,9 @@ import { hasGlyphSkeleton } from '../src/data/zhuyinGlyphs'
 import { ZHUYIN_AUDIO } from '../src/data/zhuyinAudioMap'
 
 describe('題庫資料', () => {
-  it('題庫有十三個注音：ㄅㄆㄇㄈㄉㄊㄋㄌㄍㄎㄏㄐㄑ', () => {
-    expect(WORKSHEETS.map((w) => w.targetSymbol).join('')).toBe('ㄅㄆㄇㄈㄉㄊㄋㄌㄍㄎㄏㄐㄑ')
-    expect(new Set(WORKSHEETS.map((w) => w.id)).size).toBe(13)
+  it('題庫有十八個注音：ㄅ～ㄖ', () => {
+    expect(WORKSHEETS.map((w) => w.targetSymbol).join('')).toBe('ㄅㄆㄇㄈㄉㄊㄋㄌㄍㄎㄏㄐㄑㄒㄓㄔㄕㄖ')
+    expect(new Set(WORKSHEETS.map((w) => w.id)).size).toBe(18)
   })
 
   it.each(WORKSHEETS.map((w) => [w.title, w] as const))('%s：40 個圓圈、8–10 個正確', (_title, ws) => {
@@ -15,7 +15,7 @@ describe('題庫資料', () => {
     const correct = ws.circles.filter((c) => c.symbol === ws.targetSymbol).length
     expect(correct).toBeGreaterThanOrEqual(8)
     expect(correct).toBeLessThanOrEqual(10)
-    expect(ws.illustrations).toHaveLength(4)
+    expect(ws.illustrations.length).toBeLessThanOrEqual(4)
     expect(ws.audioUrl).toBe(ZHUYIN_AUDIO[ws.targetSymbol])
   })
 
