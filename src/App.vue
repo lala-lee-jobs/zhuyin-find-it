@@ -183,10 +183,6 @@ function onSetUnlocked(id: string): void {
   ws.setUnlockedUntil(id)
 }
 
-function toggleEpaper(): void {
-  ws.setEpaper(!ws.epaper.value)
-}
-
 // 換題時把焦點留在學習單，避免螢幕閱讀器停在舊按鈕
 watch(ws.currentId, () => stage.value?.focus({ preventScroll: true }))
 </script>
@@ -223,17 +219,6 @@ watch(ws.currentId, () => stage.value?.focus({ preventScroll: true }))
           </button>
           <div v-if="settingsHint" class="settings-hint" role="status">大人設定：請按住 1 秒</div>
         </div>
-        <button
-          type="button"
-          class="round-btn epaper-btn"
-          :class="{ on: ws.epaper.value }"
-          :aria-pressed="ws.epaper.value"
-          aria-label="彩色電子紙模式"
-          :title="ws.epaper.value ? '彩色電子紙模式：開' : '彩色電子紙模式：關'"
-          @click="toggleEpaper"
-        >
-          <AppIcon name="epaper" />
-        </button>
         <button
           type="button"
           class="round-btn"
@@ -309,7 +294,9 @@ watch(ws.currentId, () => stage.value?.focus({ preventScroll: true }))
       :worksheets="ws.worksheets"
       :unlocked-until-id="ws.unlockedUntilId.value"
       :brush-sound="ws.brushSound.value"
+      :epaper="ws.epaper.value"
       @set-unlocked="onSetUnlocked"
+      @set-epaper="ws.setEpaper"
       @set-brush-sound="ws.setBrushSound"
       @close="showSettings = false"
     />
@@ -409,9 +396,6 @@ watch(ws.currentId, () => stage.value?.focus({ preventScroll: true }))
   background: #fff;
   border: 2px solid var(--ink);
   border-radius: 14px;
-}
-.epaper-btn.on {
-  background: var(--accent-soft);
 }
 .stage {
   grid-area: stage;

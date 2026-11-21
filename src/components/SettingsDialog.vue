@@ -2,6 +2,7 @@
 /**
  * 大人設定（長按頂列齒輪 1 秒才會打開，避免小朋友誤觸）：
  * - 開放題目：跟著學校進度，點一個注音 = 開放到這一題（含）為止
+ * - 彩色電子紙模式：飽和配色、關閉動畫
  * - 筆刷音效：塗色時的沙沙聲（預設關閉）
  * - 素材出處：CC BY 4.0 要求標示來源
  */
@@ -16,10 +17,12 @@ const props = defineProps<{
   worksheets: readonly ZhuyinWorksheet[]
   unlockedUntilId: string
   brushSound: boolean
+  epaper: boolean
 }>()
 const emit = defineEmits<{
   (e: 'set-unlocked', id: string): void
   (e: 'set-brush-sound', on: boolean): void
+  (e: 'set-epaper', on: boolean): void
   (e: 'close'): void
 }>()
 
@@ -58,6 +61,24 @@ const summary = computed(() => {
             </button>
           </div>
           <p class="summary" role="status">{{ summary }}</p>
+        </section>
+
+        <section>
+          <h4>顯示</h4>
+          <button
+            type="button"
+            role="switch"
+            class="switch-row"
+            :aria-checked="epaper"
+            @click="emit('set-epaper', !epaper)"
+          >
+            <AppIcon name="epaper" :size="26" />
+            <span class="switch-label">
+              <span>彩色電子紙模式</span>
+              <small>顏色改深、改鮮豔，並關閉動畫，適合彩色電子紙</small>
+            </span>
+            <span class="switch" :class="{ on: epaper }" aria-hidden="true"><span class="knob" /></span>
+          </button>
         </section>
 
         <section>
