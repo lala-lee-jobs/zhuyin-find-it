@@ -24,12 +24,12 @@ const message = computed(() => {
 })
 
 /**
- * 已經出現結果（找到了／再找找看）時，點畫面任何地方都直接關閉，不用等它自己收起來。
- * 發音中仍然不能關（除了右上角 X），讓孩子先聽完發音。
+ * 點畫面任何地方都直接關閉 Popup（與右上角 X 相同）：
+ * - 發音中關閉：停止發音、不判斷也不計分（點錯圓圈可以馬上取消）
+ * - 已出現結果：結果已記錄，直接收起
  */
 function onLayerPointerDown(): void {
-  const phase = props.popup?.phase
-  if (phase === 'feedback' || phase === 'closing') emit('close')
+  emit('close')
 }
 
 const glyphFill = computed(() =>
