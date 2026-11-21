@@ -68,9 +68,9 @@ describe('useWorksheetState：題目切換與進度', () => {
     expect(s.worksheet.value.targetSymbol).toBe('ㄆ')
     s.goPrev()
     expect(s.worksheet.value.targetSymbol).toBe('ㄅ')
-    s.selectWorksheet('zhuyin-l')
+    s.selectWorksheet('zhuyin-j')
     s.goNext()
-    expect(s.worksheet.value.targetSymbol).toBe('ㄌ') // 最後一題不換
+    expect(s.worksheet.value.targetSymbol).toBe('ㄐ') // 最後一題不換
     s.goNext(true)
     expect(s.worksheet.value.targetSymbol).toBe('ㄅ') // 完成畫面的「下一個注音」可以回到第一題
   })

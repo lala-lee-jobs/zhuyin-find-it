@@ -120,6 +120,54 @@ export const WORKSHEET_SEEDS: readonly WorksheetSeed[] = [
       ['candle', '蠟燭'],
     ],
   },
+  {
+    id: 'zhuyin-g',
+    target: 'ㄍ',
+    correctCount: 7,
+    distractors: ['ㄑ', 'ㄎ', 'ㄐ', 'ㄏ'],
+    illustrations: [
+      ['dog', '狗'],
+      ['drum', '鼓'],
+      ['pigeon', '鴿子'],
+      ['juice', '果汁'],
+    ],
+  },
+  {
+    id: 'zhuyin-k',
+    target: 'ㄎ',
+    correctCount: 6,
+    distractors: ['ㄍ', 'ㄞ', 'ㄏ', 'ㄋ'],
+    illustrations: [
+      ['pants', '褲子'],
+      ['dinosaur', '恐龍'],
+      ['mask', '口罩'],
+      ['chopsticks', '筷子'],
+    ],
+  },
+  {
+    id: 'zhuyin-h',
+    target: 'ㄏ',
+    correctCount: 8,
+    distractors: ['ㄕ', 'ㄈ', 'ㄎ', 'ㄗ'],
+    illustrations: [
+      ['monkey', '猴子'],
+      ['flower', '花'],
+      ['train', '火車'],
+      ['butterfly', '蝴蝶'],
+    ],
+  },
+  {
+    id: 'zhuyin-j',
+    target: 'ㄐ',
+    correctCount: 7,
+    distractors: ['ㄑ', 'ㄒ', 'ㄩ', 'ㄍ'],
+    illustrations: [
+      ['chicken', '雞'],
+      ['orange', '橘子'],
+      ['scissors', '剪刀'],
+      ['mirror', '鏡子'],
+    ],
+  },
 ]
 
 /** Phase 1 MVP 是「找找看 ㄌ」，第一次開啟時顯示這題 */
