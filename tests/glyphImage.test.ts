@@ -79,3 +79,11 @@ describe('中央注音圖片：位置與點擊判定', () => {
     expect(isPointInGlyphImage({ x: 15, y: 50 }, placed, 6)).toBe(true)
   })
 })
+
+describe('中央注音圖片：題庫對應', () => {
+  it('每一題都有對應的注音圖片', async () => {
+    const { WORKSHEETS } = await import('../src/data/worksheets')
+    const { getGlyphImageUrl } = await import('../src/data/zhuyinGlyphImages')
+    for (const ws of WORKSHEETS) expect(getGlyphImageUrl(ws.targetSymbol), ws.targetSymbol).toBeTruthy()
+  })
+})
