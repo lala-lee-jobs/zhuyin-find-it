@@ -34,19 +34,18 @@ function hsl(hex: string): { h: number; l: number } {
 }
 
 describe('彩色電子紙配色', () => {
-  it('容易混淆的顏色（粉紅／紫、黃／橘）色相與明暗都拉開', () => {
-    const pick = (name: string) => displayColor(BRUSH_COLORS.find((c) => c.name === name)!.value, true)
-    for (const [a, b] of [
-      ['粉紅', '紫色'],
-      ['黃色', '橘色'],
-    ]) {
-      const x = hsl(pick(a))
-      const y = hsl(pick(b))
-      const hueGap = Math.min(Math.abs(x.h - y.h), 360 - Math.abs(x.h - y.h))
-      expect(hueGap).toBeGreaterThanOrEqual(35)
-      // 明暗對比至少 1.8 倍：電子紙把顏色洗淡後，仍能靠深淺分辨
-      const [hi, lo] = [luminance(pick(a)), luminance(pick(b))].sort((m, n) => n - m)
-      expect((hi + 0.05) / (lo + 0.05)).toBeGreaterThanOrEqual(1.8)
+  it('任兩個畫筆顏色在電子紙上都分得開：色相差很多，或色相稍近但深淺差很多', () => {
+    const colors = BRUSH_COLORS.map((c) => ({ name: c.name, hex: displayColor(c.value, true) }))
+    for (let i = 0; i < colors.length; i++) {
+      for (let j = i + 1; j < colors.length; j++) {
+        const x = hsl(colors[i].hex)
+        const y = hsl(colors[j].hex)
+        const hueGap = Math.min(Math.abs(x.h - y.h), 360 - Math.abs(x.h - y.h))
+        const [hi, lo] = [luminance(colors[i].hex), luminance(colors[j].hex)].sort((m, n) => n - m)
+        const contrast = (hi + 0.05) / (lo + 0.05)
+        const ok = hueGap >= 50 || (hueGap >= 25 && contrast >= 2)
+        expect(ok, `${colors[i].name} vs ${colors[j].name}：色相差 ${hueGap.toFixed(0)}°、明暗 ${contrast.toFixed(2)}`).toBe(true)
+      }
     }
   })
 
