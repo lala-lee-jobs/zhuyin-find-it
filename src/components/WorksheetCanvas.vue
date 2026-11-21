@@ -1,0 +1,326 @@
+<script setup lang="ts">
+/**
+ * 學習單 Canvas：三張疊合的 canvas
+ *   base    ── Layer 1：紙張、標題、插畫、裝飾（靜態）
+ *   drawing ── Layer 2–4：注音遮罩內的自由塗色＋黑色外框
+ *   circles ── Layer 5–6：注音圓圈、填色動畫、互動提示
+ *
+ * 指標事件統一由外層 div 接收，換算成邏輯座標後分流：
+ *   1. 命中圓圈 → 視為「點擊」（放開時仍在同一圓圈內才觸發，避免滑動誤觸）
+ *   2. 命中中央注音 → 開始畫筆（setPointerCapture，之後移到圓圈上也不會答題）
+ *   3. 其他區域 → 不做任何事
+ */
+import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue'
+import type { BrushSettings, DrawingPoint, DrawingStroke, ZhuyinCircle, ZhuyinWorksheet } from '../types/worksheet'
+import { GLYPH_BOX } from '../canvas/layout'
+import { clientToLogical, computeBackingSize } from '../canvas/coordinateUtils'
+import { findCircleAt, isPointInCircle } from '../canvas/hitTesting'
+import { isPointInGlyph, layoutGlyph } from '../canvas/glyphGeometry'
+import { renderBase } from '../canvas/renderWorksheet'
+import { renderCircles } from '../canvas/renderCircles'
+import { loadImage, lookupImage } from '../canvas/imageCache'
+import { assetUrl } from '../utils/assetUrl'
+import { useCanvasDrawing } from '../composables/useCanvasDrawing'
+
+const props = defineProps<{
+  worksheet: ZhuyinWorksheet
+  foundIds: readonly string[]
+  strokes: readonly DrawingStroke[]
+  brush: BrushSettings
+  /** CSS 像素 / 邏輯單位 */
+  scale: number
+  dpr: number
+  activeCircleId: string | null
+  /** Popup 開啟中：不接受點擊與畫筆 */
+  locked: boolean
+}>()
+
+const emit = defineEmits<{
+  (e: 'circle-tap', circle: ZhuyinCircle): void
+  (e: 'stroke-commit', stroke: DrawingStroke): void
+}>()
+
+/** 點擊圓圈時，手指移動超過這個距離（邏輯單位）就視為滑動、不觸發 */
+const TAP_MOVE_TOLERANCE = 26
+/** 點擊判定容錯：手指稍微點在圓外也算 */
+const TAP_SLOP = 4
+
+const root = ref<HTMLDivElement | null>(null)
+const baseCanvas = ref<HTMLCanvasElement | null>(null)
+const drawCanvas = ref<HTMLCanvasElement | null>(null)
+const circleCanvas = ref<HTMLCanvasElement | null>(null)
+
+const backing = computed(() => computeBackingSize(props.scale, props.dpr))
+const glyphLayout = computed(() => layoutGlyph(props.worksheet.targetSymbol, GLYPH_BOX))
+const foundSet = computed(() => new Set(props.foundIds))
+const circleViews = computed<ZhuyinCircle[]>(() =>
+  props.worksheet.circles.map((c) => ({ ...c, isFound: foundSet.value.has(c.id) })),
+)
+
+// ───────── 繪製排程（rAF 合併多次請求） ─────────
+const dirty = { base: true, drawing: true, circles: true }
+let frame = 0
+const fillAnimations = new Map<string, number>()
+
+function requestRender(part: 'base' | 'drawing' | 'circles' | 'all' = 'all'): void {
+  if (part === 'all') {
+    dirty.base = dirty.drawing = dirty.circles = true
+  } else {
+    dirty[part] = true
+  }
+  if (!frame) frame = requestAnimationFrame(renderFrame)
+}
+
+function renderFrame(now: number): void {
+  frame = 0
+  const { width, height, k } = backing.value
+  if (dirty.base && baseCanvas.value) {
+    dirty.base = false
+    const ctx = baseCanvas.value.getContext('2d')
+    if (ctx) renderBase(ctx, props.worksheet, { k, width, height, images: lookupImage, resolveUrl: assetUrl })
+  }
+  if (dirty.drawing && drawCanvas.value) {
+    dirty.drawing = false
+    const ctx = drawCanvas.value.getContext('2d')
+    if (ctx) drawing.compose(ctx)
+  }
+  if (dirty.circles && circleCanvas.value) {
+    dirty.circles = false
+    const ctx = circleCanvas.value.getContext('2d')
+    if (ctx) {
+      const animating = renderCircles(ctx, circleViews.value, {
+        k,
+        now,
+        animations: fillAnimations,
+        activeCircleId: props.activeCircleId,
+        width,
+        height,
+      })
+      if (animating) requestRender('circles')
+      else fillAnimations.clear()
+    }
+  }
+}
+
+const drawing = useCanvasDrawing({
+  getBrush: () => props.brush,
+  onCommit: (stroke) => emit('stroke-commit', stroke),
+  requestRender: () => requestRender('drawing'),
+})
+
+// ───────── 尺寸 ─────────
+function applySize(): void {
+  const { width, height, k } = backing.value
+  for (const c of [baseCanvas.value, drawCanvas.value, circleCanvas.value]) {
+    if (!c) continue
+    if (c.width !== width) c.width = width
+    if (c.height !== height) c.height = height
+  }
+  // 以向量筆畫重建：resize 後塗色不會遺失
+  drawing.configure(width, height, k, glyphLayout.value)
+  drawing.sync(props.strokes)
+  requestRender('all')
+}
+
+function loadIllustrations(): void {
+  for (const item of props.worksheet.illustrations) {
+    loadImage(assetUrl(item.imageUrl), () => requestRender('base'))
+  }
+}
+
+onMounted(() => {
+  applySize()
+  loadIllustrations()
+  // 系統字型載入完成後重繪標題文字
+  if (typeof document !== 'undefined' && document.fonts?.ready) {
+    document.fonts.ready.then(() => requestRender('base')).catch(() => undefined)
+  }
+})
+
+onBeforeUnmount(() => {
+  if (frame) cancelAnimationFrame(frame)
+  frame = 0
+})
+
+watch(backing, applySize)
+
+watch(
+  () => props.worksheet.id,
+  () => {
+    drawing.discard()
+    pendingTap = null
+    fillAnimations.clear()
+    applySize()
+    loadIllustrations()
+  },
+)
+
+watch(
+  () => props.strokes,
+  (strokes) => {
+    drawing.sync(strokes)
+    requestRender('drawing')
+  },
+)
+
+// 新找到的圓圈 → 播放填色動畫（換題或初次載入時不播）
+watch(
+  () => [props.worksheet.id, props.foundIds] as const,
+  ([id, ids], old) => {
+    if (old && old[0] === id) {
+      const before = new Set(old[1])
+      const now = performance.now()
+      for (const cid of ids) if (!before.has(cid)) fillAnimations.set(cid, now)
+    }
+    requestRender('circles')
+  },
+)
+
+watch(
+  () => props.activeCircleId,
+  () => requestRender('circles'),
+)
+
+watch(
+  () => props.locked,
+  (locked) => {
+    if (locked) pendingTap = null
+  },
+)
+
+// ───────── 指標事件 ─────────
+interface PendingTap {
+  pointerId: number
+  circle: ZhuyinCircle
+  start: DrawingPoint
+}
+let pendingTap: PendingTap | null = null
+
+function toLogical(e: PointerEvent): DrawingPoint {
+  const rect = root.value?.getBoundingClientRect()
+  if (!rect) return { x: -1, y: -1 }
+  return clientToLogical(e.clientX, e.clientY, rect)
+}
+
+function onPointerDown(e: PointerEvent): void {
+  if (e.pointerType === 'mouse' && e.button !== 0) return
+  // 正在畫畫時忽略第二根手指（避免手掌誤觸）
+  if (drawing.isDrawing() || pendingTap) return
+  if (props.locked) return
+  const p = toLogical(e)
+
+  // 1. 圓圈優先
+  const circle = findCircleAt(p.x, p.y, circleViews.value, TAP_SLOP)
+  if (circle) {
+    pendingTap = { pointerId: e.pointerId, circle, start: p }
+    e.preventDefault()
+    return
+  }
+
+  // 2. 中央注音 → 畫筆
+  const layout = glyphLayout.value
+  if (layout && isPointInGlyph(p, layout, 6)) {
+    e.preventDefault()
+    try {
+      root.value?.setPointerCapture(e.pointerId)
+    } catch {
+      /* 某些瀏覽器在合成事件上不允許 capture */
+    }
+    drawing.begin(e.pointerId, p)
+  }
+  // 3. 其他區域：不處理
+}
+
+function onPointerMove(e: PointerEvent): void {
+  if (drawing.isDrawing(e.pointerId)) {
+    const events = typeof e.getCoalescedEvents === 'function' ? e.getCoalescedEvents() : []
+    const list = events.length > 0 ? events : [e]
+    drawing.extend(
+      e.pointerId,
+      list.map((ev) => toLogical(ev)),
+    )
+    e.preventDefault()
+    return
+  }
+  if (pendingTap && pendingTap.pointerId === e.pointerId) {
+    const p = toLogical(e)
+    if (Math.hypot(p.x - pendingTap.start.x, p.y - pendingTap.start.y) > TAP_MOVE_TOLERANCE) pendingTap = null
+  }
+}
+
+function onPointerUp(e: PointerEvent): void {
+  if (drawing.isDrawing(e.pointerId)) {
+    drawing.end(e.pointerId)
+    releaseCapture(e.pointerId)
+    return
+  }
+  if (pendingTap && pendingTap.pointerId === e.pointerId) {
+    const tap = pendingTap
+    pendingTap = null
+    const p = toLogical(e)
+    if (!props.locked && isPointInCircle(p.x, p.y, tap.circle, TAP_SLOP + 6)) {
+      // 同步 emit：讓發音在使用者手勢內開始（iOS 自動播放限制）
+      emit('circle-tap', tap.circle)
+    }
+  }
+}
+
+function onPointerCancel(e: PointerEvent): void {
+  if (drawing.isDrawing(e.pointerId)) {
+    // 保留孩子已經畫的部分
+    drawing.end(e.pointerId)
+    releaseCapture(e.pointerId)
+  }
+  if (pendingTap?.pointerId === e.pointerId) pendingTap = null
+}
+
+function releaseCapture(pointerId: number): void {
+  try {
+    if (root.value?.hasPointerCapture(pointerId)) root.value.releasePointerCapture(pointerId)
+  } catch {
+    /* ignore */
+  }
+}
+</script>
+
+<template>
+  <div
+    ref="root"
+    class="worksheet-canvas"
+    :style="{ width: `${backing.cssWidth}px`, height: `${backing.cssHeight}px` }"
+    @pointerdown="onPointerDown"
+    @pointermove="onPointerMove"
+    @pointerup="onPointerUp"
+    @pointercancel="onPointerCancel"
+    @lostpointercapture="onPointerCancel"
+    @contextmenu.prevent
+  >
+    <canvas ref="baseCanvas" class="layer" aria-hidden="true" />
+    <canvas ref="drawCanvas" class="layer" aria-hidden="true" />
+    <canvas
+      ref="circleCanvas"
+      class="layer"
+      role="img"
+      :aria-label="`${worksheet.title} 學習單，中央大注音可以塗色，周圍有 ${worksheet.circles.length} 個注音圓圈`"
+    />
+  </div>
+</template>
+
+<style scoped>
+.worksheet-canvas {
+  position: relative;
+  touch-action: none;
+  user-select: none;
+  -webkit-user-select: none;
+  -webkit-touch-callout: none;
+  -webkit-tap-highlight-color: transparent;
+}
+.layer {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  display: block;
+  pointer-events: none;
+}
+</style>

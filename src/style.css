@@ -1,0 +1,44 @@
+:root {
+  --ink: #1f1f1f;
+  --paper-bg: #f6f2e9;
+  font-family: 'Yuanti TC', 'jf-openhuninn-2.0', 'PingFang TC', 'Noto Sans TC', 'Microsoft JhengHei', system-ui,
+    sans-serif;
+  color: var(--ink);
+  background: var(--paper-bg);
+  -webkit-text-size-adjust: 100%;
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html,
+body,
+#app {
+  margin: 0;
+  height: 100%;
+  overflow: hidden;
+  overscroll-behavior: none;
+}
+
+body {
+  /* 淡淡的紙紋背景，讓學習單像放在桌上的紙 */
+  background:
+    radial-gradient(circle at 20% 10%, rgba(255, 255, 255, 0.6), transparent 40%),
+    radial-gradient(circle at 80% 90%, rgba(255, 236, 200, 0.5), transparent 45%),
+    var(--paper-bg);
+}
+
+button {
+  font: inherit;
+  cursor: pointer;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+}
+
+button:focus-visible {
+  outline: 3px solid #5ec2ff;
+  outline-offset: 3px;
+}
