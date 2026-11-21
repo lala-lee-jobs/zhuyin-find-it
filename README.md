@@ -102,7 +102,6 @@ tests/                           Vitest
 
 ## 尚缺的資源
 
-- **鼓勵語音檔**：3 個鼓勵語（見 `public/audio/README.md`）。注音 37 個音檔已放入。缺檔時不會假裝播放，也不會用 TTS 念注音。
 - **正式插畫**：`public/illustrations/` 的 32 張是風格一致的 SVG 線稿 placeholder，用同檔名替換即可。
 - **圓體字型**：標題與 UI 依序使用 Yuanti TC、jf 粉圓、PingFang TC、Noto Sans TC。若要每台裝置都一致，可在 `index.html` 加入自架的粉圓字型（OFL 授權）。注音本身不依賴字型。
 

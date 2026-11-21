@@ -54,9 +54,9 @@ export const ZHUYIN_AUDIO: Readonly<Record<string, string>> = {
 export type FeedbackKind = 'found' | 'try-again' | 'completed'
 
 export const FEEDBACK_AUDIO: Readonly<Record<FeedbackKind, string>> = {
-  found: 'audio/feedback/found.mp3',
-  'try-again': 'audio/feedback/try-again.mp3',
-  completed: 'audio/feedback/completed.mp3',
+  found: 'audio/feedback/found.wav',
+  'try-again': 'audio/feedback/try-again.wav',
+  completed: 'audio/feedback/completed.wav',
 }
 
 /** 畫面文字，同時也是音檔缺少時語音備援要念的句子 */
