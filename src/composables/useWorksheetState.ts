@@ -186,6 +186,11 @@ export function useWorksheetState(options: WorksheetStateOptions = {}) {
     const ws = worksheet.value
     setProgress(ws.id, restartPure(ws))
   }
+  /** 全部重置：清除所有題目（含未開放）的找注音與塗色；大人設定與畫筆保留 */
+  function resetAllProgress(): void {
+    for (const ws of worksheets) progressMap[ws.id] = rawStrokes(restartPure(ws))
+    saveNow()
+  }
 
   // ───────── 設定 ─────────
   function setBrush(patch: Partial<BrushSettings>): void {
@@ -231,6 +236,7 @@ export function useWorksheetState(options: WorksheetStateOptions = {}) {
     undoStroke,
     clearDrawing,
     restartWorksheet,
+    resetAllProgress,
     setBrush,
     setMuted,
     setEpaper,

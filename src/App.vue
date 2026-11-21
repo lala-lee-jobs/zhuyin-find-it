@@ -178,6 +178,12 @@ onBeforeUnmount(() => {
   if (settingsHintTimer) clearTimeout(settingsHintTimer)
 })
 
+function onResetAll(): void {
+  resetTransientUi()
+  ws.resetAllProgress()
+  showSettings.value = false
+}
+
 function onSetUnlocked(id: string): void {
   resetTransientUi()
   ws.setUnlockedUntil(id)
@@ -297,6 +303,7 @@ watch(ws.currentId, () => stage.value?.focus({ preventScroll: true }))
       :epaper="ws.epaper.value"
       @set-unlocked="onSetUnlocked"
       @set-epaper="ws.setEpaper"
+      @reset-all="onResetAll"
       @set-brush-sound="ws.setBrushSound"
       @close="showSettings = false"
     />

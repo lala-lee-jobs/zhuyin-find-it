@@ -4,9 +4,10 @@
  * - 開放題目：跟著學校進度，點一個注音 = 開放到這一題（含）為止
  * - 彩色電子紙模式：飽和配色、關閉動畫
  * - 筆刷音效：塗色時的沙沙聲（預設關閉）
+ * - 全部重置：清除所有題目的進度（按兩次才執行），設定保留
  * - 素材出處：CC BY 4.0 要求標示來源
  */
-import { computed } from 'vue'
+import { computed, ref, watch } from 'vue'
 import type { ZhuyinWorksheet } from '../types/worksheet'
 import { CREDITS } from '../data/credits'
 import AppIcon from './AppIcon.vue'
@@ -23,8 +24,20 @@ const emit = defineEmits<{
   (e: 'set-unlocked', id: string): void
   (e: 'set-brush-sound', on: boolean): void
   (e: 'set-epaper', on: boolean): void
+  (e: 'reset-all'): void
   (e: 'close'): void
 }>()
+
+/** 全部重置要按兩次：第一次只顯示確認 */
+const confirmingReset = ref(false)
+watch(
+  () => props.open,
+  () => (confirmingReset.value = false),
+)
+function confirmReset(): void {
+  confirmingReset.value = false
+  emit('reset-all')
+}
 
 const unlockedIndex = computed(() => props.worksheets.findIndex((w) => w.id === props.unlockedUntilId))
 const summary = computed(() => {
@@ -97,6 +110,30 @@ const summary = computed(() => {
             </span>
             <span class="switch" :class="{ on: brushSound }" aria-hidden="true"><span class="knob" /></span>
           </button>
+        </section>
+
+        <section>
+          <h4>重置</h4>
+          <template v-if="!confirmingReset">
+            <p class="hint">清除所有題目找到的注音和塗色。上面的設定會保留。</p>
+            <button type="button" class="btn danger" @click="confirmingReset = true">
+              <AppIcon name="restart" :size="22" />
+              <span>全部重置</span>
+            </button>
+          </template>
+          <div v-else class="reset-confirm" role="alert">
+            <p><strong>確定要清除全部 {{ worksheets.length }} 題的進度嗎？</strong><br />清除後無法復原。</p>
+            <div class="reset-buttons">
+              <button type="button" class="btn" @click="confirmingReset = false">
+                <AppIcon name="prev" :size="22" />
+                <span>先不要</span>
+              </button>
+              <button type="button" class="btn danger" @click="confirmReset">
+                <AppIcon name="trash" :size="22" />
+                <span>確定清除</span>
+              </button>
+            </div>
+          </div>
         </section>
 
         <section>
@@ -267,6 +304,22 @@ a {
   border: 3px solid var(--ink);
   border-radius: 16px;
   box-shadow: 0 3px 0 var(--ink);
+}
+.btn.danger {
+  background: #ffd6df;
+}
+.reset-confirm p {
+  margin: 0 0 10px;
+  font-size: 15px;
+  line-height: 1.5;
+}
+.reset-buttons {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+.reset-buttons .btn {
+  margin-top: 0;
 }
 .fade-enter-active,
 .fade-leave-active {

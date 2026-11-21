@@ -107,6 +107,35 @@ describe('useWorksheetState：題目切換與進度', () => {
     expect(s.progress.value.drawingStrokes.map((x) => x.id)).toEqual(['l1'])
   })
 
+  it('全部重置：清除所有題目的進度（含未開放），設定保留', () => {
+    const mem = new MemoryStorage()
+    const s = useWorksheetState({ storage: new StorageService(mem) })
+    s.setUnlockedUntil('zhuyin-q')
+    s.setEpaper(true)
+    s.setMuted(true)
+    s.addStroke(stroke('l1'))
+    for (const id of getCorrectCircleIds(s.worksheet.value)) s.markFound(id)
+    s.selectWorksheet('zhuyin-q')
+    s.addStroke(stroke('q1'))
+    s.setUnlockedUntil('zhuyin-j') // ㄑ 有進度但目前未開放
+
+    s.resetAllProgress()
+    for (const id of Object.keys(s.progressMap)) {
+      expect(s.progressMap[id].drawingStrokes).toHaveLength(0)
+      expect(s.progressMap[id].foundCircleIds).toHaveLength(0)
+      expect(s.progressMap[id].recognitionCompleted).toBe(false)
+    }
+    expect(s.completedIds.value).toHaveLength(0)
+    expect(s.unlockedUntilId.value).toBe('zhuyin-j')
+    expect(s.epaper.value).toBe(true)
+    expect(s.muted.value).toBe(true)
+
+    // 已存檔：重新開啟也是清空的
+    const b = useWorksheetState({ storage: new StorageService(mem) })
+    expect(b.progressMap['zhuyin-l'].drawingStrokes).toHaveLength(0)
+    expect(b.progressMap['zhuyin-q'].drawingStrokes).toHaveLength(0)
+  })
+
   it('存檔的開放題目不存在時，退回預設（ㄐ）', () => {
     const mem = new MemoryStorage()
     mem.setItem('zhuyin-find-it', JSON.stringify({ version: 1, unlockedUntilId: 'zhuyin-zz', progress: {} }))
