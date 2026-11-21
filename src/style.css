@@ -29,6 +29,22 @@ body,
   overscroll-behavior: none;
 }
 
+/*
+ * 給小朋友用的 App：整個畫面都不能選取文字，
+ * 長按也不會跳出「拷貝／全選／查詢」或連結預覽選單。
+ */
+html {
+  -webkit-user-select: none;
+  user-select: none;
+  -webkit-touch-callout: none;
+  -webkit-tap-highlight-color: transparent;
+}
+img,
+svg,
+a {
+  -webkit-user-drag: none;
+}
+
 body {
   background: var(--paper-bg);
 }
