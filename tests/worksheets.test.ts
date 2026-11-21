@@ -11,7 +11,7 @@ describe('題庫資料', () => {
   })
 
   it.each(WORKSHEETS.map((w) => [w.title, w] as const))('%s：26 個圓圈、6–8 個正確', (_title, ws) => {
-    expect(ws.circles.length).toBe(26)
+    expect(ws.circles.length).toBe(40)
     const correct = ws.circles.filter((c) => c.symbol === ws.targetSymbol).length
     expect(correct).toBeGreaterThanOrEqual(6)
     expect(correct).toBeLessThanOrEqual(8)

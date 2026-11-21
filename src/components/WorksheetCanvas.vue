@@ -1,7 +1,7 @@
 <script setup lang="ts">
 /**
  * 學習單 Canvas：三張疊合的 canvas
- *   base    ── Layer 1：紙張、標題、插畫、裝飾（靜態）
+ *   base    ── Layer 1：紙張、標題、裝飾（靜態）
  *   drawing ── Layer 2–4：注音遮罩內的自由塗色＋黑色外框
  *   circles ── Layer 5–6：注音圓圈、填色動畫、互動提示
  *
@@ -18,7 +18,7 @@ import { findCircleAt, isPointInCircle } from '../canvas/hitTesting'
 import { isPointInGlyph, layoutGlyph } from '../canvas/glyphGeometry'
 import { renderBase } from '../canvas/renderWorksheet'
 import { renderCircles } from '../canvas/renderCircles'
-import { loadImage, lookupImage } from '../canvas/imageCache'
+import { lookupImage } from '../canvas/imageCache'
 import { assetUrl } from '../utils/assetUrl'
 import { useCanvasDrawing } from '../composables/useCanvasDrawing'
 
@@ -126,15 +126,8 @@ function applySize(): void {
   requestRender('all')
 }
 
-function loadIllustrations(): void {
-  for (const item of props.worksheet.illustrations) {
-    loadImage(assetUrl(item.imageUrl), () => requestRender('base'))
-  }
-}
-
 onMounted(() => {
   applySize()
-  loadIllustrations()
   // 系統字型載入完成後重繪標題文字
   if (typeof document !== 'undefined' && document.fonts?.ready) {
     document.fonts.ready.then(() => requestRender('base')).catch(() => undefined)
@@ -155,7 +148,6 @@ watch(
     pendingTap = null
     fillAnimations.clear()
     applySize()
-    loadIllustrations()
   },
 )
 

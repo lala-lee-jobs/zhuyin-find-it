@@ -8,9 +8,8 @@ export const WORKSHEET_HEIGHT = 1100
 
 export const REGIONS = {
   header: { top: 0, bottom: 150 },
-  illustrations: { top: 150, bottom: 420 },
-  /** 圓圈區一路延伸到外框內側（底部不再保留進度列） */
-  board: { top: 420, bottom: 1084 },
+  /** 不放主題插畫：標題下方到外框內側全部是圓圈區 */
+  board: { top: 150, bottom: 1084 },
 } as const
 
 export const BORDER_INSET = 12
@@ -27,7 +26,7 @@ export const HEADER = {
 } as const
 
 /** 中央大注音的外框方塊（邏輯座標）。注音骨架 0–100 對應到這個方塊。 */
-export const GLYPH_BOX = { x: 250, y: 604, size: 300 } as const
+export const GLYPH_BOX = { x: 250, y: 470, size: 300 } as const
 
 /**
  * 泡泡字樣式（邏輯座標單位）
@@ -43,52 +42,38 @@ export const GLYPH_STYLE = {
 export const CIRCLE_RADIUS = 46
 export const CIRCLE_JITTER = 4
 
-/**
- * 26 個圓圈位置：上 5、中間左右各 2 × 4 列、下 5，
- * 每題再以 seeded random 做 ±4 的微調，讓排版自然但不重疊。
- */
-export const CIRCLE_SLOTS: ReadonlyArray<{ x: number; y: number; zone: 'top' | 'left' | 'right' | 'bottom' }> = [
-  { x: 85, y: 478, zone: 'top' },
-  { x: 242, y: 478, zone: 'top' },
-  { x: 400, y: 478, zone: 'top' },
-  { x: 558, y: 478, zone: 'top' },
-  { x: 715, y: 478, zone: 'top' },
+type CircleZone = 'top' | 'left' | 'right' | 'bottom'
 
-  { x: 75, y: 588, zone: 'left' },
-  { x: 185, y: 588, zone: 'left' },
-  { x: 615, y: 588, zone: 'right' },
-  { x: 725, y: 588, zone: 'right' },
-
-  { x: 75, y: 698, zone: 'left' },
-  { x: 185, y: 698, zone: 'left' },
-  { x: 615, y: 698, zone: 'right' },
-  { x: 725, y: 698, zone: 'right' },
-
-  { x: 75, y: 808, zone: 'left' },
-  { x: 185, y: 808, zone: 'left' },
-  { x: 615, y: 808, zone: 'right' },
-  { x: 725, y: 808, zone: 'right' },
-
-  { x: 75, y: 918, zone: 'left' },
-  { x: 185, y: 918, zone: 'left' },
-  { x: 615, y: 918, zone: 'right' },
-  { x: 725, y: 918, zone: 'right' },
-
-  { x: 85, y: 1028, zone: 'bottom' },
-  { x: 242, y: 1028, zone: 'bottom' },
-  { x: 400, y: 1028, zone: 'bottom' },
-  { x: 558, y: 1028, zone: 'bottom' },
-  { x: 715, y: 1028, zone: 'bottom' },
+/** 上下整排：每排 6 個 */
+const FULL_ROW_X = [75, 205, 335, 465, 595, 725]
+/** 中央大注音兩側：左右各 2 欄 */
+const SIDE_X: ReadonlyArray<[number, 'left' | 'right']> = [
+  [75, 'left'],
+  [185, 'left'],
+  [615, 'right'],
+  [725, 'right'],
+]
+/** 8 排，間距 117：上 2 排整排、中間 4 排在大注音兩側、下 2 排整排 */
+const ROWS: ReadonlyArray<[number, CircleZone | 'side']> = [
+  [210, 'top'],
+  [327, 'top'],
+  [444, 'side'],
+  [561, 'side'],
+  [678, 'side'],
+  [795, 'side'],
+  [912, 'bottom'],
+  [1029, 'bottom'],
 ]
 
-/** 四個插畫位置 */
-export const ILLUSTRATION_SLOTS = {
-  centersX: [112, 304, 496, 688],
-  imageTop: 168,
-  imageSize: 156,
-  labelY: 356,
-  labelFontSize: 30,
-} as const
+/**
+ * 40 個圓圈位置：上 2 排 × 6、中間左右各 2 × 4 排、下 2 排 × 6，
+ * 每題再以 seeded random 做 ±4 的微調，讓排版自然但不重疊。
+ */
+export const CIRCLE_SLOTS: ReadonlyArray<{ x: number; y: number; zone: CircleZone }> = ROWS.flatMap(([y, zone]) =>
+  zone === 'side'
+    ? SIDE_X.map(([x, side]) => ({ x, y, zone: side }))
+    : FULL_ROW_X.map((x) => ({ x, y, zone })),
+)
 
 /** 進度（HTML overlay），位於標題區右半部 */
 export const PROGRESS_BAND = { x: 420, y: 34, w: 350, h: 92 } as const

@@ -1,23 +1,20 @@
-/** Layer 1：紙張、外框、標題、插畫、裝飾 */
+/** Layer 1：紙張、外框、標題、裝飾 */
 import type { ZhuyinWorksheet } from '../types/worksheet'
 import { hashString, mulberry32 } from '../core/random'
 import {
   FONT_STACK,
   GLYPH_BOX,
   HEADER,
-  ILLUSTRATION_SLOTS,
   INK,
   WORKSHEET_HEIGHT,
   WORKSHEET_WIDTH,
 } from './layout'
 import {
-  drawBush,
   drawDashedBorder,
   drawFlower,
   drawHeart,
   drawSparkLines,
   drawStar,
-  setInk,
   type Ctx2D,
 } from './renderDecorations'
 import { drawSolidGlyph } from './renderZhuyin'
@@ -45,7 +42,6 @@ export function renderBase(ctx: Ctx2D, worksheet: ZhuyinWorksheet, opts: BaseRen
 
   const rand = mulberry32(hashString(`${worksheet.id}:decor`))
   drawTitle(ctx, worksheet)
-  drawIllustrations(ctx, worksheet, opts)
   drawBoardDecorations(ctx, rand)
 
   ctx.restore()
@@ -73,58 +69,6 @@ function drawTitle(ctx: Ctx2D, worksheet: ZhuyinWorksheet): void {
   )
 }
 
-function drawIllustrations(ctx: Ctx2D, worksheet: ZhuyinWorksheet, opts: BaseRenderOptions): void {
-  const { centersX, imageTop, imageSize, labelY, labelFontSize } = ILLUSTRATION_SLOTS
-  worksheet.illustrations.slice(0, 4).forEach((item, i) => {
-    const cx = centersX[i]
-    const x = cx - imageSize / 2
-    const img = opts.images(opts.resolveUrl(item.imageUrl))
-    if (img && img !== 'error') {
-      ctx.drawImage(img, x, imageTop, imageSize, imageSize)
-    } else if (img === 'error') {
-      drawIllustrationPlaceholder(ctx, x, imageTop, imageSize)
-    }
-    ctx.save()
-    ctx.font = `700 ${labelFontSize}px ${FONT_STACK}`
-    ctx.textAlign = 'center'
-    ctx.textBaseline = 'middle'
-    ctx.fillStyle = INK
-    ctx.fillText(item.word, cx, labelY, 180)
-    ctx.restore()
-  })
-}
-
-/** 插畫缺檔時的線稿 placeholder（虛線框＋小圖示），不用 Emoji */
-export function drawIllustrationPlaceholder(ctx: Ctx2D, x: number, y: number, size: number): void {
-  ctx.save()
-  setInk(ctx, 3)
-  ctx.setLineDash([8, 7])
-  const r = 22
-  ctx.beginPath()
-  ctx.moveTo(x + r, y + 8)
-  ctx.arcTo(x + size - 8, y + 8, x + size - 8, y + size - 8, r)
-  ctx.arcTo(x + size - 8, y + size - 8, x + 8, y + size - 8, r)
-  ctx.arcTo(x + 8, y + size - 8, x + 8, y + 8, r)
-  ctx.arcTo(x + 8, y + 8, x + size - 8, y + 8, r)
-  ctx.closePath()
-  ctx.stroke()
-  ctx.setLineDash([])
-  // 小山與太陽
-  const cx = x + size / 2
-  const cy = y + size / 2
-  ctx.beginPath()
-  ctx.moveTo(cx - 34, cy + 24)
-  ctx.lineTo(cx - 10, cy - 6)
-  ctx.lineTo(cx + 6, cy + 12)
-  ctx.lineTo(cx + 16, cy + 2)
-  ctx.lineTo(cx + 34, cy + 24)
-  ctx.stroke()
-  ctx.beginPath()
-  ctx.arc(cx + 18, cy - 20, 8, 0, Math.PI * 2)
-  ctx.stroke()
-  ctx.restore()
-}
-
 function pick<T>(rand: () => number, items: readonly T[]): T {
   return items[Math.floor(rand() * items.length)]
 }
@@ -137,20 +81,12 @@ const smallDecos: Deco[] = [
 ]
 
 function drawBoardDecorations(ctx: Ctx2D, rand: () => number): void {
-  // 插畫與圓圈之間的草叢與小花
-  for (const x of [40, 208, 400, 592, 760]) drawBush(ctx, x, 412, 54, 2.6)
-  for (const x of [208, 400, 592]) pick(rand, smallDecos)(ctx, x, 346, 11)
-
-  // 上排圓圈之間
-  for (const x of [163, 479]) pick(rand, smallDecos)(ctx, x, 520, 9)
-  for (const x of [321, 637]) pick(rand, smallDecos)(ctx, x, 436, 9)
+  // 上兩排、下兩排圓圈之間的小星星／愛心／花
+  for (const y of [268, 970]) for (const x of [140, 400, 660]) pick(rand, smallDecos)(ctx, x, y, 8)
 
   // 中央大注音旁的強調線
   const g = GLYPH_BOX
   drawSparkLines(ctx, g.x + 12, g.y + 6, (-3 * Math.PI) / 4, 16)
   drawSparkLines(ctx, g.x + 290, g.y + 6, -Math.PI / 4, 16)
   drawSparkLines(ctx, g.x + 290, g.y + 298, Math.PI / 4, 14)
-
-  // 下排圓圈之間
-  for (const x of [163, 321, 479, 637]) pick(rand, smallDecos)(ctx, x, 1028, 8)
 }
