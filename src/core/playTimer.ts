@@ -6,8 +6,8 @@
  * - 休息提醒顯示中不累計；按「我休息好了」後從 0 重新計時。
  */
 
-/** 可選的提醒間隔（分鐘）；0 = 關閉 */
-export const BREAK_MINUTES_OPTIONS = [0, 10, 15] as const
+/** 可選的提醒間隔（分鐘）；0 = 關閉；1 = 試用（大人先體驗提醒流程） */
+export const BREAK_MINUTES_OPTIONS = [0, 1, 10, 15] as const
 export type BreakMinutes = (typeof BREAK_MINUTES_OPTIONS)[number]
 export const DEFAULT_BREAK_MINUTES: BreakMinutes = 10
 

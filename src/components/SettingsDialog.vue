@@ -132,7 +132,7 @@ const summary = computed(() => {
               :aria-checked="breakMinutes === m"
               @click="emit('set-break-minutes', m)"
             >
-              {{ m === 0 ? '關閉' : `每 ${m} 分鐘` }}
+              {{ m === 0 ? '關閉' : m === 1 ? '試用 1 分鐘' : `每 ${m} 分鐘` }}
             </button>
           </div>
         </section>
@@ -346,7 +346,7 @@ a {
 }
 .segmented {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
+  grid-template-columns: repeat(4, 1fr);
   gap: 8px;
 }
 .seg {

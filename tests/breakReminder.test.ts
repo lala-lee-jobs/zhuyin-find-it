@@ -88,6 +88,19 @@ describe('護眼休息提醒：畫面流程', () => {
     expect(r.elapsedMs()).toBe(0)
   })
 
+  it('試用 1 分鐘：玩滿 1 分鐘就提醒', () => {
+    let now = 0
+    const r = useBreakReminder(ref(1), { now: () => now })
+    for (let i = 0; i < 59; i++) {
+      now += 1000
+      r.tick()
+    }
+    expect(r.showing.value).toBe(false)
+    now += 1000
+    r.tick()
+    expect(r.showing.value).toBe(true)
+  })
+
   it('改成 15 分鐘：10 分鐘時不提醒，15 分鐘才提醒', () => {
     let now = 0
     const minutes = ref(15)
@@ -119,10 +132,10 @@ describe('護眼休息提醒：設定', () => {
     }
   }
 
-  it('預設每 10 分鐘；只接受 0（關閉）、10、15', () => {
+  it('預設每 10 分鐘；只接受 0（關閉）、1（試用）、10、15', () => {
     expect(DEFAULT_BREAK_MINUTES).toBe(10)
     expect(createDefaultState().breakMinutes).toBe(10)
-    expect([0, 10, 15].every(isBreakMinutes)).toBe(true)
+    expect([0, 1, 10, 15].every(isBreakMinutes)).toBe(true)
     expect([5, 20, '10', null].some(isBreakMinutes)).toBe(false)
   })
 
