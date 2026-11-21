@@ -10,11 +10,11 @@ describe('題庫資料', () => {
     expect(new Set(WORKSHEETS.map((w) => w.id)).size).toBe(12)
   })
 
-  it.each(WORKSHEETS.map((w) => [w.title, w] as const))('%s：26 個圓圈、6–8 個正確', (_title, ws) => {
-    expect(ws.circles.length).toBe(40)
+  it.each(WORKSHEETS.map((w) => [w.title, w] as const))('%s：32 個圓圈、8–10 個正確', (_title, ws) => {
+    expect(ws.circles.length).toBe(32)
     const correct = ws.circles.filter((c) => c.symbol === ws.targetSymbol).length
-    expect(correct).toBeGreaterThanOrEqual(6)
-    expect(correct).toBeLessThanOrEqual(8)
+    expect(correct).toBeGreaterThanOrEqual(8)
+    expect(correct).toBeLessThanOrEqual(10)
     expect(ws.illustrations).toHaveLength(4)
     expect(ws.audioUrl).toBe(ZHUYIN_AUDIO[ws.targetSymbol])
   })

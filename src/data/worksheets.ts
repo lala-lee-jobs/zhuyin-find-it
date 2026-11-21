@@ -9,7 +9,7 @@ export const CIRCLE_FILL_COLORS = ['#FFEB99', '#FFC9D6', '#BFE3FF', '#C4F0DA', '
 export interface WorksheetSeed {
   id: string
   target: string
-  /** 正確圓圈數（6–8） */
+  /** 正確圓圈數（8–10） */
   correctCount: number
   /** 干擾注音（形狀相近者優先） */
   distractors: string[]
@@ -27,7 +27,7 @@ export const WORKSHEET_SEEDS: readonly WorksheetSeed[] = [
   {
     id: 'zhuyin-b',
     target: 'ㄅ',
-    correctCount: 7,
+    correctCount: 9,
     distractors: ['ㄆ', 'ㄉ', 'ㄌ', 'ㄇ'],
     illustrations: [
       ['bun', '包子'],
@@ -39,7 +39,7 @@ export const WORKSHEET_SEEDS: readonly WorksheetSeed[] = [
   {
     id: 'zhuyin-p',
     target: 'ㄆ',
-    correctCount: 6,
+    correctCount: 8,
     distractors: ['ㄅ', 'ㄊ', 'ㄈ', 'ㄇ'],
     illustrations: [
       ['apple', '蘋果'],
@@ -51,7 +51,7 @@ export const WORKSHEET_SEEDS: readonly WorksheetSeed[] = [
   {
     id: 'zhuyin-m',
     target: 'ㄇ',
-    correctCount: 8,
+    correctCount: 10,
     distractors: ['ㄈ', 'ㄋ', 'ㄅ', 'ㄆ'],
     illustrations: [
       ['cat', '貓咪'],
@@ -63,7 +63,7 @@ export const WORKSHEET_SEEDS: readonly WorksheetSeed[] = [
   {
     id: 'zhuyin-f',
     target: 'ㄈ',
-    correctCount: 7,
+    correctCount: 9,
     distractors: ['ㄇ', 'ㄅ', 'ㄊ', 'ㄉ'],
     illustrations: [
       ['airplane', '飛機'],
@@ -75,7 +75,7 @@ export const WORKSHEET_SEEDS: readonly WorksheetSeed[] = [
   {
     id: 'zhuyin-d',
     target: 'ㄉ',
-    correctCount: 7,
+    correctCount: 9,
     distractors: ['ㄌ', 'ㄅ', 'ㄊ', 'ㄋ'],
     illustrations: [
       ['cake', '蛋糕'],
@@ -87,7 +87,7 @@ export const WORKSHEET_SEEDS: readonly WorksheetSeed[] = [
   {
     id: 'zhuyin-t',
     target: 'ㄊ',
-    correctCount: 8,
+    correctCount: 10,
     distractors: ['ㄅ', 'ㄇ', 'ㄈ', 'ㄉ'],
     illustrations: [
       ['candy', '糖果'],
@@ -99,7 +99,7 @@ export const WORKSHEET_SEEDS: readonly WorksheetSeed[] = [
   {
     id: 'zhuyin-n',
     target: 'ㄋ',
-    correctCount: 6,
+    correctCount: 8,
     distractors: ['ㄅ', 'ㄇ', 'ㄊ', 'ㄈ', 'ㄉ'],
     illustrations: [
       ['milk', '牛奶'],
@@ -111,7 +111,7 @@ export const WORKSHEET_SEEDS: readonly WorksheetSeed[] = [
   {
     id: 'zhuyin-l',
     target: 'ㄌ',
-    correctCount: 7,
+    correctCount: 9,
     distractors: ['ㄉ', 'ㄇ', 'ㄈ', 'ㄋ', 'ㄊ'],
     illustrations: [
       ['mouse', '老鼠'],
@@ -123,7 +123,7 @@ export const WORKSHEET_SEEDS: readonly WorksheetSeed[] = [
   {
     id: 'zhuyin-g',
     target: 'ㄍ',
-    correctCount: 7,
+    correctCount: 9,
     distractors: ['ㄑ', 'ㄎ', 'ㄐ', 'ㄏ'],
     illustrations: [
       ['dog', '狗'],
@@ -135,7 +135,7 @@ export const WORKSHEET_SEEDS: readonly WorksheetSeed[] = [
   {
     id: 'zhuyin-k',
     target: 'ㄎ',
-    correctCount: 6,
+    correctCount: 8,
     distractors: ['ㄍ', 'ㄞ', 'ㄏ', 'ㄋ'],
     illustrations: [
       ['pants', '褲子'],
@@ -147,7 +147,7 @@ export const WORKSHEET_SEEDS: readonly WorksheetSeed[] = [
   {
     id: 'zhuyin-h',
     target: 'ㄏ',
-    correctCount: 8,
+    correctCount: 10,
     distractors: ['ㄕ', 'ㄈ', 'ㄎ', 'ㄗ'],
     illustrations: [
       ['monkey', '猴子'],
@@ -159,7 +159,7 @@ export const WORKSHEET_SEEDS: readonly WorksheetSeed[] = [
   {
     id: 'zhuyin-j',
     target: 'ㄐ',
-    correctCount: 7,
+    correctCount: 9,
     distractors: ['ㄑ', 'ㄒ', 'ㄩ', 'ㄍ'],
     illustrations: [
       ['chicken', '雞'],

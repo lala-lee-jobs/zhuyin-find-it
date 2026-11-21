@@ -82,7 +82,7 @@ const smallDecos: Deco[] = [
 
 function drawBoardDecorations(ctx: Ctx2D, rand: () => number): void {
   // 上兩排、下兩排圓圈之間的小星星／愛心／花
-  for (const y of [268, 970]) for (const x of [140, 400, 660]) pick(rand, smallDecos)(ctx, x, y, 8)
+  for (const y of [278, 963]) for (const x of [160, 320, 480, 640]) pick(rand, smallDecos)(ctx, x, y, 8)
 
   // 中央大注音旁的強調線
   const g = GLYPH_BOX
