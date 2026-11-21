@@ -195,6 +195,9 @@ watch(ws.currentId, () => stage.value?.focus({ preventScroll: true }))
           :epaper="ws.epaper.value"
           @circle-tap="onCircleTap"
           @stroke-commit="onStrokeCommit"
+          @stroke-start="(tool) => audio.brush.start(tool)"
+          @stroke-move="(distance) => audio.brush.move(distance)"
+          @stroke-end="audio.brush.stop()"
         />
         <WorksheetHeader
           :symbol="ws.worksheet.value.targetSymbol"

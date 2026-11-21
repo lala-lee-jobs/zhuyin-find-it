@@ -11,7 +11,14 @@
  *   3. 其他區域 → 不做任何事
  */
 import { computed, onBeforeUnmount, onMounted, ref, shallowRef, watch } from 'vue'
-import type { BrushSettings, DrawingPoint, DrawingStroke, ZhuyinCircle, ZhuyinWorksheet } from '../types/worksheet'
+import type {
+  BrushSettings,
+  DrawingPoint,
+  DrawingStroke,
+  DrawingTool,
+  ZhuyinCircle,
+  ZhuyinWorksheet,
+} from '../types/worksheet'
 import { GLYPH_BOX, GLYPH_IMAGE_AREA } from '../canvas/layout'
 import { clientToLogical, computeBackingSize } from '../canvas/coordinateUtils'
 import { findCircleAt, isPointInCircle } from '../canvas/hitTesting'
@@ -50,6 +57,10 @@ const props = defineProps<{
 const emit = defineEmits<{
   (e: 'circle-tap', circle: ZhuyinCircle): void
   (e: 'stroke-commit', stroke: DrawingStroke): void
+  /** 筆刷音效用 */
+  (e: 'stroke-start', tool: DrawingTool): void
+  (e: 'stroke-move', distance: number): void
+  (e: 'stroke-end'): void
 }>()
 
 /** 點擊圓圈時，手指移動超過這個距離（邏輯單位）就視為滑動、不觸發 */
@@ -119,6 +130,9 @@ const drawing = useCanvasDrawing({
   getBrush: () => props.brush,
   onCommit: (stroke) => emit('stroke-commit', stroke),
   requestRender: () => requestRender('drawing'),
+  onStrokeStart: (tool) => emit('stroke-start', tool),
+  onStrokeMove: (distance) => emit('stroke-move', distance),
+  onStrokeEnd: () => emit('stroke-end'),
 })
 
 // ───────── 中央注音圖片（PNG） ─────────

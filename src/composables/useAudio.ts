@@ -1,7 +1,15 @@
 import { getCurrentScope, onScopeDispose, ref, watch, type Ref } from 'vue'
 import { AudioService, type PlayOutcome } from '../services/AudioService'
+import { BrushSound } from '../services/BrushSound'
 
 let shared: AudioService | null = null
+let sharedBrush: BrushSound | null = null
+
+/** 塗色的筆刷音效（全站共用一個 AudioContext） */
+export function getBrushSound(): BrushSound {
+  if (!sharedBrush) sharedBrush = new BrushSound()
+  return sharedBrush
+}
 
 /** 全站共用一個 AudioService（一個共用的 audio 元素，iOS 解鎖後持續有效） */
 export function getAudioService(): AudioService {
@@ -9,7 +17,11 @@ export function getAudioService(): AudioService {
   return shared
 }
 
-export function useAudio(muted: Ref<boolean>, service: AudioService = getAudioService()) {
+export function useAudio(
+  muted: Ref<boolean>,
+  service: AudioService = getAudioService(),
+  brush: BrushSound = getBrushSound(),
+) {
   const speakerPlaying = ref(false)
   let speakerAbort: AbortController | null = null
 
@@ -17,6 +29,7 @@ export function useAudio(muted: Ref<boolean>, service: AudioService = getAudioSe
     muted,
     (m) => {
       service.setMuted(m)
+      brush.setMuted(m)
       if (m) stopSpeaker()
     },
     { immediate: true },
@@ -50,7 +63,11 @@ export function useAudio(muted: Ref<boolean>, service: AudioService = getAudioSe
     return service.playFeedback('completed')
   }
 
-  if (getCurrentScope()) onScopeDispose(() => service.stop())
+  if (getCurrentScope())
+    onScopeDispose(() => {
+      service.stop()
+      brush.stop(true)
+    })
 
-  return { service, speakerPlaying, playTarget, stopSpeaker, playCompletion }
+  return { service, brush, speakerPlaying, playTarget, stopSpeaker, playCompletion }
 }
