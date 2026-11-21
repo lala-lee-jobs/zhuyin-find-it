@@ -411,13 +411,10 @@ watch(ws.currentId, () => stage.value?.focus({ preventScroll: true }))
   place-items: center;
   outline: none;
 }
+/* 滿版：白紙與頁面背景同色，不加陰影與圓角 */
 .sheet {
   position: relative;
   background: #fff;
-  border-radius: 6px;
-  box-shadow:
-    0 1px 0 rgba(0, 0, 0, 0.08),
-    0 10px 28px rgba(80, 60, 20, 0.16);
 }
 .tools {
   grid-area: tools;

@@ -1,6 +1,7 @@
 :root {
   --ink: #1f1f1f;
-  --paper-bg: #f6f2e9;
+  /* 頁面背景與學習單同為白色，看起來就是一整張紙 */
+  --paper-bg: #ffffff;
   /* 強調色：淡黃底、金黃線（電子紙模式會換成飽和色） */
   --accent-soft: #ffeb99;
   --accent: #ffc43d;
@@ -29,11 +30,7 @@ body,
 }
 
 body {
-  /* 淡淡的紙紋背景，讓學習單像放在桌上的紙 */
-  background:
-    radial-gradient(circle at 20% 10%, rgba(255, 255, 255, 0.6), transparent 40%),
-    radial-gradient(circle at 80% 90%, rgba(255, 236, 200, 0.5), transparent 45%),
-    var(--paper-bg);
+  background: var(--paper-bg);
 }
 
 button {
@@ -49,17 +46,13 @@ button:focus-visible {
 }
 
 /* ───────── 彩色電子紙模式 ─────────
- * 電子紙飽和度低：淡色換成飽和色、背景改純白提高對比；
+ * 電子紙飽和度低：淡色換成飽和色；
  * 更新速度慢：關閉動畫與轉場，避免殘影。 */
 :root[data-display='epaper'] {
-  --paper-bg: #ffffff;
   --accent-soft: #ffc400;
   --accent: #ff8a00;
   --accent-bright: #ffb000;
   --accent-deep: #a35200;
-}
-:root[data-display='epaper'] body {
-  background: #fff;
 }
 :root[data-display='epaper'] *,
 :root[data-display='epaper'] *::before,
