@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { WORKSHEETS, WORKSHEET_SEEDS, buildWorksheet } from '../src/data/worksheets'
-import { REGIONS, WORKSHEET_WIDTH, BORDER_INSET } from '../src/canvas/layout'
+import { REGIONS, WORKSHEET_WIDTH, EDGE_MARGIN } from '../src/canvas/layout'
 import { hasGlyphSkeleton } from '../src/data/zhuyinGlyphs'
 import { ZHUYIN_AUDIO } from '../src/data/zhuyinAudioMap'
 
@@ -24,8 +24,8 @@ describe('題庫資料', () => {
       for (const c of ws.circles) {
         expect(c.y - c.radius).toBeGreaterThanOrEqual(REGIONS.board.top)
         expect(c.y + c.radius).toBeLessThanOrEqual(REGIONS.board.bottom)
-        expect(c.x - c.radius).toBeGreaterThan(BORDER_INSET)
-        expect(c.x + c.radius).toBeLessThan(WORKSHEET_WIDTH - BORDER_INSET)
+        expect(c.x - c.radius).toBeGreaterThanOrEqual(EDGE_MARGIN)
+        expect(c.x + c.radius).toBeLessThanOrEqual(WORKSHEET_WIDTH - EDGE_MARGIN)
         expect(c.radius).toBeGreaterThanOrEqual(40) // 觸控面積
       }
       for (let i = 0; i < ws.circles.length; i++) {

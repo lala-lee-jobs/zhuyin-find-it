@@ -3,17 +3,14 @@ import type { ZhuyinWorksheet } from '../types/worksheet'
 import { hashString, mulberry32 } from '../core/random'
 import {
   FONT_STACK,
-  GLYPH_BOX,
   HEADER,
   INK,
   WORKSHEET_HEIGHT,
   WORKSHEET_WIDTH,
 } from './layout'
 import {
-  drawDashedBorder,
   drawFlower,
   drawHeart,
-  drawSparkLines,
   drawStar,
   type Ctx2D,
 } from './renderDecorations'
@@ -38,7 +35,6 @@ export function renderBase(ctx: Ctx2D, worksheet: ZhuyinWorksheet, opts: BaseRen
 
   ctx.fillStyle = '#fff'
   ctx.fillRect(0, 0, WORKSHEET_WIDTH, WORKSHEET_HEIGHT)
-  drawDashedBorder(ctx)
 
   const rand = mulberry32(hashString(`${worksheet.id}:decor`))
   drawTitle(ctx, worksheet)
@@ -82,11 +78,5 @@ const smallDecos: Deco[] = [
 
 function drawBoardDecorations(ctx: Ctx2D, rand: () => number): void {
   // 上兩排、下兩排圓圈之間的小星星／愛心／花
-  for (const y of [268, 970]) for (const x of [140, 400, 660]) pick(rand, smallDecos)(ctx, x, y, 8)
-
-  // 中央大注音旁的強調線
-  const g = GLYPH_BOX
-  drawSparkLines(ctx, g.x + 12, g.y + 6, (-3 * Math.PI) / 4, 16)
-  drawSparkLines(ctx, g.x + 290, g.y + 6, -Math.PI / 4, 16)
-  drawSparkLines(ctx, g.x + 290, g.y + 298, Math.PI / 4, 14)
+  for (const y of [267, 981]) for (const x of [130, 400, 670]) pick(rand, smallDecos)(ctx, x, y, 8)
 }

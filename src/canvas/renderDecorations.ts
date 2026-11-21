@@ -1,5 +1,5 @@
 /** 黑白線稿裝飾：星星、愛心、小花、雲朵、草叢、強調線、虛線外框 */
-import { BORDER_INSET, INK, WORKSHEET_HEIGHT, WORKSHEET_WIDTH } from './layout'
+import { INK } from './layout'
 
 export type Ctx2D = CanvasRenderingContext2D | OffscreenCanvasRenderingContext2D
 
@@ -134,10 +134,4 @@ export function drawSparkLines(ctx: Ctx2D, x: number, y: number, angle: number, 
   }
 }
 
-export function drawDashedBorder(ctx: Ctx2D): void {
-  ctx.save()
-  setInk(ctx, 2.5)
-  ctx.setLineDash([10, 7])
-  ctx.strokeRect(BORDER_INSET, BORDER_INSET, WORKSHEET_WIDTH - BORDER_INSET * 2, WORKSHEET_HEIGHT - BORDER_INSET * 2)
-  ctx.restore()
-}
+
