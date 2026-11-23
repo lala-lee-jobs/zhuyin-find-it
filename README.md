@@ -5,9 +5,12 @@
 **線上玩**：https://lala-lee-jobs.github.io/zhuyin-find-it/
 
 - 中央大注音：用手指／觸控筆／滑鼠自由塗色，顏色**只會出現在注音裡面**。
-- 周圍 22 個注音圓圈：點一下 → 先聽發音 → 再看「找到了！」或「再找找看！」。
+- 周圍注音圓圈：點一下 → 先聽發音 → 再看「找到了！」或「再找找看！」。
 - 兩個活動完全獨立：先塗先找都可以，找完後也可以繼續塗。
 - 37 個注音全部完成（ㄅ～ㄦ），大人可在設定中選擇開放範圍。
+- **燈泡按鈕（相關詞語）**：每個注音都有配對詞語頁面，可聽詞語三段式發音（整詞→第一字→第二字）。
+- **聽音找注音模式**：點耳機按鈕，以播放的注音為目標，在板上找出全部對應的圓圈；中央注音隱藏，純靠聽力作答。
+- **提示按鈕**：學習單標題區的放大鏡按鈕，每按一次在一個未找到的目標圓圈上顯示脈衝光環。
 - 護眼提醒：每隔設定的分鐘數提醒休息，休息畫面會蓋住整個畫面直到按下「我休息好了！」。
 - **PWA**：第一次載入後所有資源都快取到裝置，之後**離線也能玩**；可加到主畫面像 App 一樣開啟。
 
@@ -31,7 +34,7 @@ src/
 ├── App.vue                      組合所有元件、題目切換、確認對話框
 ├── components/
 │   ├── WorksheetCanvas.vue      三層 Canvas + 指標事件分流（圓圈 / 畫筆）
-│   ├── WorksheetHeader.vue      標題喇叭按鈕（HTML overlay）
+│   ├── WorksheetHeader.vue      標題喇叭、燈泡、放大鏡（提示）按鈕（HTML overlay）
 │   ├── DrawingToolbar.vue       顏色、粗細、橡皮擦、復原、清除、重新開始
 │   ├── AnswerPopup.vue          點擊圓圈後的 Popup
 │   ├── CompletionPopup.vue      全部找到的獎勵畫面
@@ -42,16 +45,20 @@ src/
 │   ├── BreakPopup.vue           護眼休息提醒畫面（全螢幕覆蓋）
 │   ├── PwaBanner.vue            PWA 就緒時的一次性安裝提示
 │   ├── ZhuyinGlyph.vue          SVG 注音（與 Canvas 同一份骨架資料）
-│   └── AppIcon.vue              線稿圖示
+│   ├── ListenGamePage.vue       聽音找注音全螢幕覆蓋頁面
+│   ├── HintSpotlight.vue        提示光環（脈衝動畫，HTML overlay）
+│   └── AppIcon.vue              線稿圖示（含耳機、放大鏡）
 ├── composables/
 │   ├── useWorksheetState.ts     題目、進度、畫筆設定、自動儲存
 │   ├── useCircleInteraction.ts  狀態機的 Vue 包裝
 │   ├── useCanvasDrawing.ts      畫筆筆畫與離屏合成
 │   ├── useAudio.ts              共用 AudioService、標題喇叭、塗色音效
 │   ├── useBreakReminder.ts      護眼計時（僅累計畫面可見時間）
-│   └── useStageFit.ts           等比例縮放、方向、devicePixelRatio
+│   ├── useStageFit.ts           等比例縮放、方向、devicePixelRatio
+│   ├── useListenGame.ts         聽音模式：板生成、當前符號、已找到圓圈
+│   └── useHint.ts               提示：循環指向未找到的目標圓圈
 ├── canvas/
-│   ├── layout.ts                800×1100 邏輯座標版面
+│   ├── layout.ts                直式800×1100 / 橫式1160×800 / 窄版600×1000 版面
 │   ├── renderWorksheet.ts       Layer 1：紙張、標題、插畫、裝飾
 │   ├── drawingMask.ts           Layer 2–4：遮罩合成（GlyphPaintSurface）
 │   ├── renderZhuyin.ts          實心注音／泡泡字外框／遮罩
@@ -74,6 +81,7 @@ src/
 │   └── StorageService.ts        localStorage（含版本欄位）
 ├── data/
 │   ├── worksheets.ts            題庫種子 → 題目（37 題，預設開放前 27 題）
+│   ├── listenBoard.ts           聽音模式：round-robin 分配圓圈、seeded shuffle 板生成
 │   ├── zhuyinGlyphs.ts          注音骨架路徑（SVG 用）
 │   ├── zhuyinGlyphs/            注音骨架圖（PNG，Canvas 用，37 張）
 │   ├── zhuyinGlyphImages.ts     注音圖檔 import 匯總
@@ -106,6 +114,10 @@ tests/                           Vitest（單元測試）
 
 **大人設定（長按保護）**：設定按鈕需要長按 1 秒才打開，避免幼兒誤觸。按住時按鈕有由下往上的填色動畫提示進度；鍵盤 Enter 直接打開（鍵盤通常不在幼兒手邊）。
 
+**聽音找注音模式**：點頂列耳機按鈕進入全螢幕覆蓋。版面用同一套 `SheetLayout`，`hideGlyph=true` 讓 Canvas 標題區與中央泡泡字都不渲染，只留「？」HTML 覆蓋層。圓圈來自 `buildListenBoard`：把已解鎖的注音用 round-robin 分配到全部 40 個位置，再以字串種子 `seededShuffle`，每次進入模式都一致。每輪隨機選一個符號播放，全找完再換下一個；`useListenGame` 的 `watch(currentSymbol)` 確保換題時立即觸發播放。
+
+**提示功能**：`useHint` 維護一個「當前提示圓圈 id」，每次呼叫 `triggerHint()` 在未找到的目標圓圈中循環前進；找到被提示的圓圈後自動清除。`HintSpotlight` 是純 HTML 覆蓋層，把目標圓圈的 canvas 邏輯座標轉成百分比定位，套上橘色脈衝動畫（`@keyframes hint-pulse`），`pointer-events: none` 不干擾點擊。
+
 ## 尚缺的資源
 
 - **圓體字型**：標題與 UI 依序使用 Yuanti TC、jf 粉圓、PingFang TC、Noto Sans TC。若要每台裝置都一致，可在 `index.html` 加入自架的粉圓字型（OFL 授權）。注音本身不依賴字型。
@@ -123,6 +135,7 @@ tests/                           Vitest（單元測試）
 2. **難度**：種子加入 `distractors` 數量與 `correctCount` 的難度設定（例如只用形狀差異大的干擾注音）。
 3. **A4 列印**：`renderBase` + `renderCircles` 已是純函式，可在 2480×3508 的離屏 Canvas 上以 `k = 3.1` 輸出。
 4. **學習紀錄**：`WorksheetProgress` 可加上完成時間；`StorageService.migrate` 已預留版本遷移。
+5. **詞語頁更多注音**：目前僅 ㄅ 有詞語頁，`VocabPage` 元件已完成，擴充只需在 `VOCAB_WORDS` 中補充其他注音的詞語資料。
 
 ## 素材來源與授權
 
