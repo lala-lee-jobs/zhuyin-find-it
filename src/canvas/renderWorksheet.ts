@@ -20,6 +20,8 @@ export interface BaseRenderOptions {
   resolveUrl: (path: string) => string
   /** 版面（預設直式） */
   layout?: SheetLayout
+  /** 聽音模式：隱藏標題中的注音符號 */
+  hideGlyph?: boolean
 }
 
 export function renderBase(ctx: Ctx2D, worksheet: ZhuyinWorksheet, opts: BaseRenderOptions): void {
@@ -34,13 +36,18 @@ export function renderBase(ctx: Ctx2D, worksheet: ZhuyinWorksheet, opts: BaseRen
   ctx.fillRect(0, 0, layout.width, layout.height)
 
   const rand = mulberry32(hashString(`${worksheet.id}:decor`))
-  drawTitle(ctx, worksheet, layout.header)
+  drawTitle(ctx, worksheet, layout.header, opts.hideGlyph)
   drawBoardDecorations(ctx, rand, layout)
 
   ctx.restore()
 }
 
-function drawTitle(ctx: Ctx2D, worksheet: ZhuyinWorksheet, HEADER: SheetLayout['header']): void {
+function drawTitle(
+  ctx: Ctx2D,
+  worksheet: ZhuyinWorksheet,
+  HEADER: SheetLayout['header'],
+  hideGlyph?: boolean,
+): void {
   const label = '找找看'
   ctx.save()
   ctx.font = `900 ${HEADER.titleFontSize}px ${FONT_STACK}`
@@ -53,13 +60,15 @@ function drawTitle(ctx: Ctx2D, worksheet: ZhuyinWorksheet, HEADER: SheetLayout['
   ctx.fillText(label, startX, HEADER.titleBaselineY, HEADER.titleFontSize * 3.4)
   ctx.restore()
 
-  const size = HEADER.titleGlyphSize
-  drawSolidGlyph(
-    ctx,
-    worksheet.targetSymbol,
-    { x: startX + textWidth + gap, y: HEADER.titleBaselineY - size + 6, size },
-    13,
-  )
+  if (!hideGlyph) {
+    const size = HEADER.titleGlyphSize
+    drawSolidGlyph(
+      ctx,
+      worksheet.targetSymbol,
+      { x: startX + textWidth + gap, y: HEADER.titleBaselineY - size + 6, size },
+      13,
+    )
+  }
 }
 
 function pick<T>(rand: () => number, items: readonly T[]): T {

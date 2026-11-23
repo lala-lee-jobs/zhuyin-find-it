@@ -141,6 +141,7 @@ onMounted(() => {
           :locked="interaction.isBusy.value || showCompletion"
           :epaper="epaper"
           :layout="fit.layout.value"
+          :hide-glyph="true"
           @circle-tap="onCircleTap"
         />
         <!-- "?" 蓋住中央注音，小朋友點擊可重播發音 -->

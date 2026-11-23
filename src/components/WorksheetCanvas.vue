@@ -56,6 +56,8 @@ const props = defineProps<{
   epaper: boolean
   /** 版面（直式／橫式／手機窄版） */
   layout: SheetLayout
+  /** 聽音模式：隱藏中央大注音（泡泡字＋外框），只保留圓圈 */
+  hideGlyph?: boolean
 }>()
 
 const emit = defineEmits<{
@@ -115,12 +117,20 @@ function renderFrame(now: number): void {
         images: lookupImage,
         resolveUrl: assetUrl,
         layout: props.layout,
+        hideGlyph: props.hideGlyph,
       })
   }
   if (dirty.drawing && drawCanvas.value) {
     dirty.drawing = false
     const ctx = drawCanvas.value.getContext('2d')
-    if (ctx) drawing.compose(ctx)
+    if (ctx) {
+      if (props.hideGlyph) {
+        ctx.setTransform(1, 0, 0, 1, 0, 0)
+        ctx.clearRect(0, 0, drawCanvas.value.width, drawCanvas.value.height)
+      } else {
+        drawing.compose(ctx)
+      }
+    }
   }
   if (dirty.circles && circleCanvas.value) {
     dirty.circles = false
@@ -233,6 +243,7 @@ onBeforeUnmount(() => {
 })
 
 watch(backing, applySize)
+watch(() => props.hideGlyph, () => requestRender('all'))
 // 換版面（轉螢幕）：圓圈、大注音位置都變了，整個重畫
 watch(
   () => props.layout,
