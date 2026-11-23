@@ -22,6 +22,7 @@ withDefaults(
       | 'info'
       | 'settings'
       | 'bulb'
+      | 'headphones'
     size?: number
   }>(),
   { size: 28 },
@@ -117,6 +118,12 @@ withDefaults(
       <path d="M11.5 22.5h9" />
       <path d="M13 26h6" />
       <path d="M16 4v2M4 16H2M28 16h2M6.9 6.9l1.4 1.4M25.1 6.9l-1.4 1.4" />
+    </template>
+    <template v-else-if="name === 'headphones'">
+      <!-- 耳罩：左右各一個方塊；頭帶：從左耳上緣彎到右耳上緣的弧線 -->
+      <path d="M6 22v-7a10 10 0 0 1 20 0v7" />
+      <rect x="3" y="19" width="6" height="9" rx="3" fill="#fff" />
+      <rect x="23" y="19" width="6" height="9" rx="3" fill="#fff" />
     </template>
     <template v-else-if="name === 'palette'">
       <path

@@ -19,11 +19,16 @@ import { useBreakReminder } from './composables/useBreakReminder'
 import AppIcon from './components/AppIcon.vue'
 import PwaBanner from './components/PwaBanner.vue'
 import VocabPage from './components/VocabPage.vue'
+import ListenGamePage from './components/ListenGamePage.vue'
 import { displayColor } from './core/palette'
 import { VOCAB_WORDS } from './data/vocabWords'
 
 const ws = useWorksheetState()
 const audio = useAudio(ws.muted, ws.brushSound)
+
+// ───────── 聽音遊戲 ─────────
+const showListenGame = ref(false)
+const listenSymbols = computed(() => ws.available.value.map((w) => w.targetSymbol))
 
 // ───────── 相關詞語 ─────────
 const showVocab = ref(false)
@@ -235,6 +240,15 @@ watch(ws.currentId, () => stage.value?.focus({ preventScroll: true }))
         @next="goNext()"
       />
       <div class="top-actions">
+        <button
+          type="button"
+          class="round-btn"
+          :class="{ active: showListenGame }"
+          aria-label="聽音找注音模式"
+          @click="showListenGame = true"
+        >
+          <AppIcon name="headphones" />
+        </button>
         <div class="settings-wrap">
           <button
             type="button"
@@ -362,6 +376,14 @@ watch(ws.currentId, () => stage.value?.focus({ preventScroll: true }))
       :words="currentVocabWords"
       @close="showVocab = false"
     />
+    <ListenGamePage
+      v-if="showListenGame"
+      :symbols="listenSymbols"
+      :audio="audio.service"
+      :muted="ws.muted.value"
+      :epaper="ws.epaper.value"
+      @close="showListenGame = false"
+    />
     <PwaBanner />
   </div>
 </template>
@@ -411,6 +433,9 @@ watch(ws.currentId, () => stage.value?.focus({ preventScroll: true }))
   background: #fff;
   color: var(--ink);
   box-shadow: 0 3px 0 var(--ink);
+}
+.round-btn.active {
+  background: var(--accent-soft, #fff3bf);
 }
 .settings-wrap {
   position: relative;
