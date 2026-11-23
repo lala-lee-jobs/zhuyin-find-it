@@ -20,7 +20,7 @@ export const REGIONS = {
 /** 滿版（不畫外框線）：圓圈離紙張邊緣的最小距離 */
 export const EDGE_MARGIN = 4
 
-/** 標題區：左半部放標題＋喇叭，右半部放進度（見 PROGRESS_BAND） */
+/** 標題區：左半部放標題＋喇叭＋燈泡，右半部放進度（見 PROGRESS_BAND） */
 export const HEADER = {
   /** 標題文字的左緣 */
   titleLeftX: 40,
@@ -29,6 +29,8 @@ export const HEADER = {
   titleGlyphSize: 58,
   /** 喇叭按鈕（HTML overlay，x/y 為中心點） */
   speaker: { x: 330, y: 80, size: 72 },
+  /** 燈泡（相關字）按鈕，緊靠喇叭右側 */
+  vocab: { x: 406, y: 80, size: 54 },
 } as const
 
 /** 中央大注音的外框方塊（邏輯座標）。注音骨架 0–100 對應到這個方塊。 */
@@ -87,8 +89,8 @@ export const CIRCLE_SLOTS: ReadonlyArray<CircleSlot> = ROWS.flatMap(([y, zone]) 
     : FULL_ROW_X.map((x) => ({ x, y, zone })),
 )
 
-/** 進度（HTML overlay），位於標題區右半部 */
-export const PROGRESS_BAND = { x: 380, y: 26, w: 404, h: 112 } as const
+/** 進度（HTML overlay），位於標題區右半部（燈泡按鈕右側開始） */
+export const PROGRESS_BAND = { x: 450, y: 26, w: 334, h: 112 } as const
 
 // ───────── 三種版面 ─────────
 
@@ -112,6 +114,7 @@ export interface SheetLayout {
     titleFontSize: number
     titleGlyphSize: number
     speaker: { x: number; y: number; size: number }
+    vocab: { x: number; y: number; size: number }
   }
   /** 進度（HTML overlay） */
   /** fontSize：「已找到」文字的最大字級；starRows：星星排成幾排（小版 2 排，其餘 1 排） */
@@ -155,6 +158,7 @@ export const LANDSCAPE_LAYOUT: SheetLayout = {
     titleFontSize: 58,
     titleGlyphSize: 62,
     speaker: { x: 344, y: 70, size: 76 },
+    vocab: { x: 424, y: 70, size: 58 },
   },
   progress: { x: 520, y: 10, w: 620, h: 112, fontSize: 32, starRows: 1 },
   glyphBox: { x: 430, y: 314, size: 300 },
@@ -201,8 +205,9 @@ export const NARROW_LAYOUT: SheetLayout = {
     titleFontSize: 44,
     titleGlyphSize: 48,
     speaker: { x: 262, y: 78, size: 58 },
+    vocab: { x: 320, y: 78, size: 46 },
   },
-  progress: { x: 300, y: 10, w: 294, h: 132, fontSize: 32, starRows: 2 },
+  progress: { x: 358, y: 10, w: 236, h: 132, fontSize: 32, starRows: 2 },
   glyphBox: { x: 150, y: 423, size: 300 },
   glyphImageArea: { cx: 300, cy: 573, maxW: 360, maxH: 370 },
   slots: NARROW_ROWS.flatMap(([y, zone]): CircleSlot[] =>

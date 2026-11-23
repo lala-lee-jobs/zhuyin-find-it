@@ -21,6 +21,7 @@ withDefaults(
       | 'brush-sound-off'
       | 'info'
       | 'settings'
+      | 'bulb'
     size?: number
   }>(),
   { size: 28 },
@@ -110,6 +111,12 @@ withDefaults(
       <circle cx="16" cy="16" r="12" fill="#fff" />
       <path d="M16 14.5v8" />
       <circle cx="16" cy="10" r="1.6" fill="currentColor" stroke="none" />
+    </template>
+    <template v-else-if="name === 'bulb'">
+      <path d="M16 4a9 9 0 0 1 6 15.5c-1 1-1.5 2-1.5 3H11.5c0-1-.5-2-1.5-3A9 9 0 0 1 16 4z" fill="#fff" />
+      <path d="M11.5 22.5h9" />
+      <path d="M13 26h6" />
+      <path d="M16 4v2M4 16H2M28 16h2M6.9 6.9l1.4 1.4M25.1 6.9l-1.4 1.4" />
     </template>
     <template v-else-if="name === 'palette'">
       <path

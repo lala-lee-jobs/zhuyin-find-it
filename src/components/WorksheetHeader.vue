@@ -13,8 +13,9 @@ const props = defineProps<{
   muted: boolean
   hint: string | null
   layout: SheetLayout
+  hasVocab: boolean
 }>()
-const emit = defineEmits<{ (e: 'speak'): void }>()
+const emit = defineEmits<{ (e: 'speak'): void; (e: 'vocab'): void }>()
 
 const style = computed(() => {
   const { width: W, height: H } = props.layout
@@ -24,6 +25,16 @@ const style = computed(() => {
     top: `${((s.y - s.size / 2) / H) * 100}%`,
     width: `${(s.size / W) * 100}%`,
     height: `${(s.size / H) * 100}%`,
+  }
+})
+const vocabStyle = computed(() => {
+  const { width: W, height: H } = props.layout
+  const v = props.layout.header.vocab
+  return {
+    left: `${((v.x - v.size / 2) / W) * 100}%`,
+    top: `${((v.y - v.size / 2) / H) * 100}%`,
+    width: `${(v.size / W) * 100}%`,
+    height: `${(v.size / H) * 100}%`,
   }
 })
 const label = computed(() => (props.muted ? `已靜音，${props.symbol} 的發音` : `聽 ${props.symbol} 的發音`))
@@ -40,6 +51,16 @@ const label = computed(() => (props.muted ? `已靜音，${props.symbol} 的發�
   >
     <AppIcon :name="muted ? 'speaker-off' : 'speaker'" :size="40" class="icon" />
     <span v-if="playing" class="ripple" aria-hidden="true" />
+  </button>
+  <button
+    v-if="hasVocab"
+    type="button"
+    class="vocab-btn"
+    :style="vocabStyle"
+    aria-label="`相關詞語`"
+    @click="emit('vocab')"
+  >
+    <AppIcon name="bulb" :size="40" class="icon" />
   </button>
   <Transition name="hint">
     <div v-if="hint" class="speaker-hint" role="status" :style="{ left: style.left, top: style.top }">{{ hint }}</div>
@@ -74,6 +95,27 @@ const label = computed(() => (props.muted ? `已靜音，${props.symbol} 的發�
 }
 .speaker-btn.muted {
   color: #9a9286;
+}
+.vocab-btn {
+  position: absolute;
+  z-index: 5;
+  display: grid;
+  place-items: center;
+  padding: 0;
+  border-radius: 50%;
+  border: 3px solid var(--ink);
+  background: var(--accent-soft);
+  color: var(--ink);
+  box-shadow: 0 3px 0 var(--ink);
+  touch-action: manipulation;
+}
+.vocab-btn .icon {
+  width: 62%;
+  height: 62%;
+}
+.vocab-btn:active {
+  transform: translateY(2px);
+  box-shadow: 0 1px 0 var(--ink);
 }
 .ripple {
   position: absolute;

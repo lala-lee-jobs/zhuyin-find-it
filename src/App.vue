@@ -18,10 +18,17 @@ import BreakPopup from './components/BreakPopup.vue'
 import { useBreakReminder } from './composables/useBreakReminder'
 import AppIcon from './components/AppIcon.vue'
 import PwaBanner from './components/PwaBanner.vue'
+import VocabPage from './components/VocabPage.vue'
 import { displayColor } from './core/palette'
+import { VOCAB_WORDS } from './data/vocabWords'
 
 const ws = useWorksheetState()
 const audio = useAudio(ws.muted, ws.brushSound)
+
+// ───────── 相關詞語 ─────────
+const showVocab = ref(false)
+const currentVocabWords = computed(() => VOCAB_WORDS[ws.worksheet.value.targetSymbol] ?? [])
+const hasVocab = computed(() => currentVocabWords.value.length > 0)
 
 const showCompletion = ref(false)
 
@@ -283,7 +290,9 @@ watch(ws.currentId, () => stage.value?.focus({ preventScroll: true }))
           :muted="ws.muted.value"
           :hint="speakerHint"
           :layout="fit.layout.value"
+          :has-vocab="hasVocab"
           @speak="onSpeak"
+          @vocab="showVocab = true"
         />
         <ProgressIndicator
           :found="ws.progress.value.foundCircleIds.length"
@@ -346,6 +355,12 @@ watch(ws.currentId, () => stage.value?.focus({ preventScroll: true }))
       :confirm-label="confirmText.confirm"
       @confirm="onConfirm"
       @cancel="confirmKind = null"
+    />
+    <VocabPage
+      :open="showVocab"
+      :symbol="ws.worksheet.value.targetSymbol"
+      :words="currentVocabWords"
+      @close="showVocab = false"
     />
     <PwaBanner />
   </div>
