@@ -17,6 +17,7 @@ import SettingsDialog from './components/SettingsDialog.vue'
 import BreakPopup from './components/BreakPopup.vue'
 import { useBreakReminder } from './composables/useBreakReminder'
 import AppIcon from './components/AppIcon.vue'
+import PwaBanner from './components/PwaBanner.vue'
 import { displayColor } from './core/palette'
 
 const ws = useWorksheetState()
@@ -346,6 +347,7 @@ watch(ws.currentId, () => stage.value?.focus({ preventScroll: true }))
       @confirm="onConfirm"
       @cancel="confirmKind = null"
     />
+    <PwaBanner />
   </div>
 </template>
 
