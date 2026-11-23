@@ -10,7 +10,6 @@
 - 37 個注音全部完成（ㄅ～ㄦ），大人可在設定中選擇開放範圍。
 - **燈泡按鈕（相關詞語）**：每個注音都有配對詞語頁面，可聽詞語三段式發音（整詞→第一字→第二字）。
 - **聽音找注音模式**：點耳機按鈕，以播放的注音為目標，在板上找出全部對應的圓圈；中央注音隱藏，純靠聽力作答。
-- **提示按鈕**：學習單標題區的放大鏡按鈕，每按一次在一個未找到的目標圓圈上顯示脈衝光環。
 - 護眼提醒：每隔設定的分鐘數提醒休息，休息畫面會蓋住整個畫面直到按下「我休息好了！」。
 - **PWA**：第一次載入後所有資源都快取到裝置，之後**離線也能玩**；可加到主畫面像 App 一樣開啟。
 
@@ -34,7 +33,7 @@ src/
 ├── App.vue                      組合所有元件、題目切換、確認對話框
 ├── components/
 │   ├── WorksheetCanvas.vue      三層 Canvas + 指標事件分流（圓圈 / 畫筆）
-│   ├── WorksheetHeader.vue      標題喇叭、燈泡、放大鏡（提示）按鈕（HTML overlay）
+│   ├── WorksheetHeader.vue      標題喇叭、燈泡按鈕（HTML overlay）
 │   ├── DrawingToolbar.vue       顏色、粗細、橡皮擦、復原、清除、重新開始
 │   ├── AnswerPopup.vue          點擊圓圈後的 Popup
 │   ├── CompletionPopup.vue      全部找到的獎勵畫面
@@ -46,8 +45,7 @@ src/
 │   ├── PwaBanner.vue            PWA 就緒時的一次性安裝提示
 │   ├── ZhuyinGlyph.vue          SVG 注音（與 Canvas 同一份骨架資料）
 │   ├── ListenGamePage.vue       聽音找注音全螢幕覆蓋頁面
-│   ├── HintSpotlight.vue        提示光環（脈衝動畫，HTML overlay）
-│   └── AppIcon.vue              線稿圖示（含耳機、放大鏡）
+│   └── AppIcon.vue              線稿圖示（含耳機）
 ├── composables/
 │   ├── useWorksheetState.ts     題目、進度、畫筆設定、自動儲存
 │   ├── useCircleInteraction.ts  狀態機的 Vue 包裝
@@ -55,8 +53,7 @@ src/
 │   ├── useAudio.ts              共用 AudioService、標題喇叭、塗色音效
 │   ├── useBreakReminder.ts      護眼計時（僅累計畫面可見時間）
 │   ├── useStageFit.ts           等比例縮放、方向、devicePixelRatio
-│   ├── useListenGame.ts         聽音模式：板生成、當前符號、已找到圓圈
-│   └── useHint.ts               提示：循環指向未找到的目標圓圈
+│   └── useListenGame.ts         聽音模式：板生成、當前符號、已找到圓圈
 ├── canvas/
 │   ├── layout.ts                直式800×1100 / 橫式1160×800 / 窄版600×1000 版面
 │   ├── renderWorksheet.ts       Layer 1：紙張、標題、插畫、裝飾
@@ -116,7 +113,6 @@ tests/                           Vitest（單元測試）
 
 **聽音找注音模式**：點頂列耳機按鈕進入全螢幕覆蓋。版面用同一套 `SheetLayout`，`hideGlyph=true` 讓 Canvas 標題區與中央泡泡字都不渲染，只留「？」HTML 覆蓋層。圓圈來自 `buildListenBoard`：把已解鎖的注音用 round-robin 分配到全部 40 個位置，再以字串種子 `seededShuffle`，每次進入模式都一致。每輪隨機選一個符號播放，全找完再換下一個；`useListenGame` 的 `watch(currentSymbol)` 確保換題時立即觸發播放。
 
-**提示功能**：`useHint` 維護一個「當前提示圓圈 id」，每次呼叫 `triggerHint()` 在未找到的目標圓圈中循環前進；找到被提示的圓圈後自動清除。`HintSpotlight` 是純 HTML 覆蓋層，把目標圓圈的 canvas 邏輯座標轉成百分比定位，套上橘色脈衝動畫（`@keyframes hint-pulse`），`pointer-events: none` 不干擾點擊。
 
 ## 尚缺的資源
 
@@ -136,6 +132,7 @@ tests/                           Vitest（單元測試）
 3. **A4 列印**：`renderBase` + `renderCircles` 已是純函式，可在 2480×3508 的離屏 Canvas 上以 `k = 3.1` 輸出。
 4. **學習紀錄**：`WorksheetProgress` 可加上完成時間；`StorageService.migrate` 已預留版本遷移。
 5. **詞語頁更多注音**：目前僅 ㄅ 有詞語頁，`VocabPage` 元件已完成，擴充只需在 `VOCAB_WORDS` 中補充其他注音的詞語資料。
+6. **提示按鈕**：學習單標題區放放大鏡按鈕，點擊後在一個未找到的目標圓圈上顯示脈衝光環，幫助找不到的孩子。
 
 ## 素材來源與授權
 
