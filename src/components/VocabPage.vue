@@ -2,6 +2,8 @@
 import { ref, computed, watch } from 'vue'
 import type { VocabWord } from '../data/vocabWords'
 import AppIcon from './AppIcon.vue'
+import { ZHUYIN_AUDIO } from '../data/zhuyinAudioMap'
+import { assetUrl } from '../utils/assetUrl'
 
 const props = defineProps<{
   open: boolean
@@ -11,13 +13,17 @@ const props = defineProps<{
 const emit = defineEmits<{ (e: 'close'): void }>()
 
 const index = ref(0)
+const speaking = ref(false)
 
 watch(
   () => props.open,
   (open) => {
     if (open) index.value = 0
+    else speechSynthesis.cancel()
   },
 )
+
+watch(index, () => speechSynthesis.cancel())
 
 const current = computed(() => props.words[index.value])
 const isFirst = computed(() => index.value === 0)
@@ -28,6 +34,40 @@ function prev(): void {
 }
 function next(): void {
   if (!isLast.value) index.value++
+}
+
+function speak(): void {
+  speechSynthesis.cancel()
+  speaking.value = true
+
+  // 步驟 1 & 2：TTS 念詞語和單字；步驟 3：真人音檔念注音
+  const ttsTexts = [current.value.word, current.value.keyChar]
+
+  function speakTts(i: number): void {
+    if (i >= ttsTexts.length) {
+      playSymbolAudio()
+      return
+    }
+    const utt = new SpeechSynthesisUtterance(ttsTexts[i])
+    utt.lang = 'zh-TW'
+    utt.rate = 0.85
+    utt.onend = () => { setTimeout(() => speakTts(i + 1), 300) }
+    utt.onerror = () => { speaking.value = false }
+    speechSynthesis.speak(utt)
+  }
+
+  function playSymbolAudio(): void {
+    const path = ZHUYIN_AUDIO[props.symbol]
+    if (!path) { speaking.value = false; return }
+    setTimeout(() => {
+      const audio = new Audio(assetUrl(path))
+      audio.onended = () => { speaking.value = false }
+      audio.onerror = () => { speaking.value = false }
+      audio.play().catch(() => { speaking.value = false })
+    }, 300)
+  }
+
+  speakTts(0)
 }
 </script>
 
@@ -58,6 +98,15 @@ function next(): void {
           <div :key="index" class="card">
             <img :src="current.illustration" class="illustration" alt="" draggable="false" />
             <div class="word">{{ current.word }}</div>
+            <button
+              type="button"
+              class="speak-btn"
+              :class="{ playing: speaking }"
+              aria-label="`聽 ${current.word} 的發音`"
+              @click="speak"
+            >
+              <AppIcon name="speaker" :size="36" />
+            </button>
           </div>
         </Transition>
 
@@ -180,6 +229,28 @@ function next(): void {
 .nav-btn.hidden {
   opacity: 0;
   pointer-events: none;
+}
+.speak-btn {
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  border: 3px solid var(--ink);
+  background: #fff;
+  color: var(--ink);
+  box-shadow: 0 3px 0 var(--ink);
+  display: grid;
+  place-items: center;
+}
+.speak-btn:active {
+  transform: translateY(2px);
+  box-shadow: 0 1px 0 var(--ink);
+}
+.speak-btn.playing {
+  background: var(--accent-soft);
+  animation: speaker-pulse 0.7s ease-in-out infinite;
+}
+@keyframes speaker-pulse {
+  50% { transform: scale(1.07); }
 }
 
 .dots {

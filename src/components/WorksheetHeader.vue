@@ -104,7 +104,7 @@ const label = computed(() => (props.muted ? `已靜音，${props.symbol} 的發�
   padding: 0;
   border-radius: 50%;
   border: 3px solid var(--ink);
-  background: var(--accent-soft);
+  background: #fff;
   color: var(--ink);
   box-shadow: 0 3px 0 var(--ink);
   touch-action: manipulation;
