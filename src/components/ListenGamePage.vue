@@ -112,7 +112,7 @@ function onClose(): void {
   emit('close')
 }
 
-const LISTEN_BRUSH: BrushSettings = { tool: 'brush', color: '#ff6b6b', size: 20 }
+const LISTEN_BRUSH: BrushSettings = { tool: 'brush', color: '#ff6b6b', width: 20 }
 
 onMounted(() => {
   game.start()
