@@ -5,7 +5,14 @@ import AppIcon from './AppIcon.vue'
 import { displayColor } from '../core/palette'
 import ZhuyinGlyph from './ZhuyinGlyph.vue'
 
-const props = defineProps<{ open: boolean; symbol: string; epaper: boolean }>()
+const props = defineProps<{
+  open: boolean
+  /** 空字串時不顯示注音（聽音模式） */
+  symbol: string
+  epaper: boolean
+  /** 只顯示「再玩一次」（聽音模式全部找完時使用） */
+  replayOnly?: boolean
+}>()
 const emit = defineEmits<{
   (e: 'continue'): void
   (e: 'replay'): void
@@ -42,18 +49,18 @@ const confetti = computed(() =>
           <AppIcon name="star" :size="44" class="st st2" />
           <AppIcon name="star" :size="30" class="st st3" />
         </div>
-        <ZhuyinGlyph :symbol="symbol" :size="92" variant="bubble" :fill="displayColor('#FFEB99', epaper)" class="glyph" />
+        <ZhuyinGlyph v-if="symbol" :symbol="symbol" :size="92" variant="bubble" :fill="displayColor('#FFEB99', epaper)" class="glyph" />
         <h2>{{ FEEDBACK_TEXT.completed }}</h2>
         <div class="actions">
-          <button type="button" class="action primary" @click="emit('continue')">
+          <button v-if="!replayOnly" type="button" class="action primary" @click="emit('continue')">
             <AppIcon name="brush" :size="30" />
             <span>繼續塗色</span>
           </button>
-          <button type="button" class="action" @click="emit('replay')">
+          <button type="button" class="action" :class="{ primary: replayOnly }" @click="emit('replay')">
             <AppIcon name="replay" :size="30" />
             <span>再玩一次</span>
           </button>
-          <button type="button" class="action" @click="emit('next')">
+          <button v-if="!replayOnly" type="button" class="action" @click="emit('next')">
             <AppIcon name="next" :size="30" />
             <span>下一個注音</span>
           </button>

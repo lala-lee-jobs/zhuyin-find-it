@@ -174,11 +174,10 @@ onMounted(() => {
     />
     <CompletionPopup
       :open="showCompletion"
-      :symbol="game.currentSymbol.value"
+      symbol=""
       :epaper="epaper"
-      @continue="onClose"
+      replay-only
       @replay="onReplay"
-      @next="onClose"
     />
   </div>
 </template>
