@@ -53,6 +53,8 @@ export interface ZhuyinWorksheet {
   audioUrl: string
   illustrations: IllustrationItem[]
   circles: ZhuyinCircle[]
+  /** 圓圈已經依這個版面排好（例如聽音模式），placeCircles 直接使用、不再重排 */
+  layoutId?: string
 }
 
 // ───────── 進度 ─────────

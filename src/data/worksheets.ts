@@ -287,6 +287,7 @@ function isWellSpread(arranged: readonly string[], target: string, slots: readon
  */
 const placementCache = new Map<string, ZhuyinCircle[]>()
 export function placeCircles(worksheet: ZhuyinWorksheet, layout: SheetLayout): ZhuyinCircle[] {
+  if (worksheet.layoutId === layout.id) return worksheet.circles
   if (layout.slots === CIRCLE_SLOTS) return worksheet.circles
   const key = `${worksheet.id}:${layout.id}`
   const cached = placementCache.get(key)

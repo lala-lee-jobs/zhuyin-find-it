@@ -22,10 +22,10 @@ const props = defineProps<{
 }>()
 const emit = defineEmits<{ (e: 'close'): void }>()
 
-const game = useListenGame(props.symbols)
-
 const stage = ref<HTMLElement | null>(null)
 const fit = useStageFit(stage)
+
+const game = useListenGame(props.symbols, fit.layout)
 
 const sheetStyle = computed(() => ({
   width: `${Math.round(fit.layout.value.width * fit.scale.value)}px`,
@@ -92,7 +92,7 @@ const interaction = useCircleInteraction({
 
 const activeFillColor = computed(() => {
   const id = interaction.activeCircleId.value
-  const color = game.board.circles.find((c) => c.id === id)?.fillColor
+  const color = game.board.value.circles.find((c) => c.id === id)?.fillColor
   return color ? displayColor(color, props.epaper) : undefined
 })
 
