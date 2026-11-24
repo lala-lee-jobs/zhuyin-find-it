@@ -58,13 +58,17 @@ export type FeedbackKind = 'found' | 'try-again' | 'completed' | 'break' | 'next
  * 新增語音：把檔案放進 public/audio/feedback/，再加到對應的陣列即可。
  */
 export const FEEDBACK_AUDIO: Readonly<Record<FeedbackKind, readonly string[]>> = {
-  found: ['audio/feedback/found-1.wav', 'audio/feedback/found-2.wav'],
-  'try-again': ['audio/feedback/tryagain-1.wav', 'audio/feedback/tryagain-2.wav'],
+  found: ['audio/feedback/found-1.wav', 'audio/feedback/found-2.wav', 'audio/feedback/found-3.wav'],
+  'try-again': [
+    'audio/feedback/tryagain-1.wav',
+    'audio/feedback/tryagain-2.wav',
+    'audio/feedback/tryagain-3.wav',
+  ],
   completed: ['audio/feedback/completed.wav'],
   /** 護眼休息提醒（Google AI Studio 生成後放進來；還沒有檔案時用裝置的中文語音念 FEEDBACK_TEXT.break） */
   break: ['audio/feedback/break.wav'],
   /** 聽音模式換下一個注音：「我們來找下一個注音吧！」 */
-  next: ['audio/feedback/next.wav'],
+  next: ['audio/feedback/next-1.wav', 'audio/feedback/next-2.wav', 'audio/feedback/next-3.wav'],
 }
 
 /** 可以先沒有音檔的語音（缺檔時用裝置語音念出文字） */
