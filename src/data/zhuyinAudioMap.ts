@@ -51,7 +51,7 @@ export const ZHUYIN_AUDIO: Readonly<Record<string, string>> = {
   'ㄩ': 'audio/zhuyin/F37.wav',
 }
 
-export type FeedbackKind = 'found' | 'try-again' | 'completed' | 'break'
+export type FeedbackKind = 'found' | 'try-again' | 'completed' | 'break' | 'next'
 
 /**
  * 鼓勵語音：每種可以有好幾句，播放時隨機挑一句（不會連續兩次同一句）。
@@ -63,6 +63,8 @@ export const FEEDBACK_AUDIO: Readonly<Record<FeedbackKind, readonly string[]>> =
   completed: ['audio/feedback/completed.wav'],
   /** 護眼休息提醒（Google AI Studio 生成後放進來；還沒有檔案時用裝置的中文語音念 FEEDBACK_TEXT.break） */
   break: ['audio/feedback/break.wav'],
+  /** 聽音模式換下一個注音：「我們來找下一個注音吧！」 */
+  next: ['audio/feedback/next.wav'],
 }
 
 /** 可以先沒有音檔的語音（缺檔時用裝置語音念出文字） */
@@ -73,5 +75,6 @@ export const FEEDBACK_TEXT: Readonly<Record<FeedbackKind, string>> = {
   found: '找到了！',
   'try-again': '再找找看！',
   completed: '太棒了！全部找到了！',
+  next: '我們來找下一個注音吧！',
   break: '眼睛休息一下，我們去喝水、上廁所、抱抱爸爸媽媽吧！等等再來玩！',
 }

@@ -128,6 +128,7 @@ describe('鼓勵語音多樣化', () => {
     'try-again': ['a/try-1.wav', 'a/try-2.wav'],
     completed: ['a/done.wav'],
     break: ['a/break.wav'],
+    next: ['a/next.wav'],
   } as const
 
   it('每次隨機挑一句，不會連續兩次同一句', () => {

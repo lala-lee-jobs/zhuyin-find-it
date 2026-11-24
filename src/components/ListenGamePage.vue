@@ -7,6 +7,7 @@ import WorksheetCanvas from './WorksheetCanvas.vue'
 import ProgressIndicator from './ProgressIndicator.vue'
 import AnswerPopup from './AnswerPopup.vue'
 import CompletionPopup from './CompletionPopup.vue'
+import NextRoundPopup from './NextRoundPopup.vue'
 import { useListenGame } from '../composables/useListenGame'
 import { useCircleInteraction } from '../composables/useCircleInteraction'
 import { useStageFit } from '../composables/useStageFit'
@@ -79,14 +80,41 @@ watch(() => game.currentSymbol.value, (symbol) => {
 
 // ── 圓圈互動 ──
 const showCompletion = ref(false)
+/** 一個注音找完、還有下一個：先提示，按「找下一個！」才換題 */
+const showNext = ref(false)
+let nextVoice: AbortController | null = null
+
+function playNextVoice(): void {
+  stopNextVoice()
+  stopAudio()
+  nextVoice = new AbortController()
+  void props.audio.playFeedback('next', nextVoice.signal)
+}
+
+function stopNextVoice(): void {
+  nextVoice?.abort()
+  nextVoice = null
+  props.audio.stop()
+}
+
+/** 還沒完成的注音數（不含剛找完的這個） */
+const remainingSymbols = computed(() => {
+  const symbols = new Set(game.board.value.circles.map((c) => c.symbol))
+  return [...symbols].filter((s) => s !== game.currentSymbol.value && !game.completedSymbols.value.includes(s)).length
+})
 
 const interaction = useCircleInteraction({
   audio: props.audio,
   evaluate: (id) => game.evaluate(id),
   onCorrect: (id) => game.markFound(id),
   onRecognitionComplete: () => {
-    game.advanceToNextSymbol()
-    if (game.isAllDone.value) showCompletion.value = true
+    if (remainingSymbols.value === 0) {
+      game.advanceToNextSymbol()
+      showCompletion.value = true
+      return
+    }
+    showNext.value = true
+    playNextVoice()
   },
 })
 
@@ -100,13 +128,22 @@ function onCircleTap(circle: ZhuyinCircle): void {
   void interaction.tap({ id: circle.id, symbol: circle.symbol })
 }
 
+function onNext(): void {
+  stopNextVoice()
+  showNext.value = false
+  game.advanceToNextSymbol() // 換題時 watch 會自動播下一個注音
+}
+
 function onReplay(): void {
+  stopNextVoice()
+  showNext.value = false
   showCompletion.value = false
   interaction.cancel()
   game.start()
 }
 
 function onClose(): void {
+  stopNextVoice()
   stopAudio()
   interaction.cancel()
   emit('close')
@@ -138,7 +175,7 @@ onMounted(() => {
           :scale="fit.scale.value"
           :dpr="fit.dpr.value"
           :active-circle-id="interaction.activeCircleId.value"
-          :locked="interaction.isBusy.value || showCompletion"
+          :locked="interaction.isBusy.value || showCompletion || showNext"
           :epaper="epaper"
           :layout="fit.layout.value"
           :hide-glyph="true"
@@ -171,6 +208,13 @@ onMounted(() => {
       :popup="interaction.popup.value"
       :fill-color="activeFillColor"
       @close="interaction.close()"
+    />
+    <NextRoundPopup
+      :open="showNext"
+      :remaining="remainingSymbols"
+      :muted="muted"
+      @next="onNext"
+      @replay="playNextVoice"
     />
     <CompletionPopup
       :open="showCompletion"
